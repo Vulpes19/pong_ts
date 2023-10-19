@@ -32,20 +32,6 @@ function addVertices(v1: Vertices, v2: Vertices): Vertices {
 	return (ret);
 };
 
-function	updatePlayerPosition(pos: Vertices, direction: Direction): Vertices {
-	let y: number = pos.y;
-	if (direction == Direction.UP)
-		y -= 10;
-	else
-		y += 10;
-	let ret: Vertices = {
-		x: pos.x,
-		y: y
-	}
-	return (ret);
-} 
-
-
 function App() {
 	const player: Paddle = {
 		position: {x: 0, y: 250},
@@ -64,19 +50,19 @@ function App() {
 	// const [ballPosition, setBallPosition] = useState<Vertices>({x: 400, y:300});
 	const [ballX, setBallX] = useState<number>(400);
 	const [ballY, setBallY] = useState<number>(300);
-	const [velX, setVelX] = useState<number>(10);
-	const [velY, setVelY] = useState<number>(10);
-	// const [ballVelocity, setBallVelocity] = useState<Vertices>({x: 1, y: 1});
+	const [velX, setVelX] = useState<number>(5);
+	const [velY, setVelY] = useState<number>(5);
+	// const [ballVelocity, setBallVelocity] = useState<Vertices>({x: 5, y: 5});
 	player.img.src = 'assets/paddle.png';
 	oponent.img.src = 'assets/paddle.png';
 	ball.img.src = 'assets/ball.png';
-	const handleMovement = (e: React.KeyboardEvent) => {
+	const handleMovement = (e: KeyboardEvent) => {
 		if (e.key === 'ArrowUp' && position.y > 0 )
 		{
 			setPositon({x: 0, y: position.y - 20})
 			console.log('up');
 		}
-		if (e.key === 'ArrowDown' && position.y < 600)
+		if (e.key === 'ArrowDown' && position.y + 100 < 600)
 		{
 			setPositon({x: 0, y: position.y + 20})
 			console.log('down');
@@ -85,45 +71,43 @@ function App() {
 	useEffect( () => {
 		const updateBall = () => {
 			setBallX( (x: number): number => {
+				if (x < position.x + 25 && ballY >= position.y && ballY <= position.y + 100)
+					setVelX(5);
 				if (x < 0)
 				{
-					setVelX(10);
-					console.log(x, velX);
+					setBallY(300);
+					return (400);
 				}
-				if (x+ 20 > 800)
+				if (x + 40 > 800)
 				{
-					setVelX(-10);
+					setVelX(-5);
 					console.log(x, velX);
 				}
 				return (x + velX);
 			})
 			setBallY( (y: number): number => {
 				if (y < 0 )
-				{
-					setVelY(10);
-					// console.log(ballPos.x, ballVelocity);
-				}
-				if (y + 20 > 600)
-				{
-					setVelY(-10);
-					// console.log(ballPos.x, ballVelocity);
-				}
+					setVelY(5);
+				if (y + 40 > 600)
+					setVelY(-5);
 				return (y + velY);
 			})
 		}
+		window.addEventListener('keydown', handleMovement);
 		let id: number = requestAnimationFrame(updateBall);
-		return () => cancelAnimationFrame(id);
+		return () => {
+			window.removeEventListener('keydown', handleMovement);
+			cancelAnimationFrame(id);
+		}
 	}, [ballX, ballY, velX, velY])
 	return (
-		<div onKeyDown={handleMovement} tabIndex={1}>
-			<Stage width={800} height={600}>
-				<Layer>
-					<Image image={player.img} x={position.x} y={position.y}  />
-					<Image image={oponent.img} x={oponent.position.x} y={oponent.position.y} />
-					<Image image={ball.img} x={ballX} y={ballY} />
-				</Layer>
-			</Stage>
-		</div>
+		<Stage width={800} height={600}>
+			<Layer>
+				<Image image={player.img} x={position.x} y={position.y}  />
+				<Image image={oponent.img} x={oponent.position.x} y={oponent.position.y} />
+				<Image image={ball.img} x={ballX} y={ballY} />
+			</Layer>
+		</Stage>
 		);
 	}
 	
