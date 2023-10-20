@@ -49,13 +49,13 @@ function App() {
 	useEffect( () => {
 		if (isRunning === false)
 		{
+			console.log('Im in countdown')
 			if (count === 0)
 			{
 				setRunning(true);
 				setCount(3);
 				return ;
 			}
-			console.log('helo')
 			const id: number = setInterval( () => {
 				setCount(count - 1);
 			}, 1000);
@@ -66,7 +66,9 @@ function App() {
 	}, [isRunning, count])
 
 	useEffect( () => {
-		const updateBall = () => {
+		if (isRunning) {
+			console.log('Im in gameloop')
+		const update = () => {
 			//collision with side window borders
 			setBallX( (x: number): number => {
 				//player paddle collision
@@ -93,6 +95,7 @@ function App() {
 				//player scores
 				if (x + 40 > WIDTH)
 				{
+					setRunning(false);
 					setPlayerScore(playerScore + 1);
 					if (Math.floor(Math.random() * 4) > 2)
 						setVelX(5);
@@ -114,12 +117,13 @@ function App() {
 		}
 		//player movement
 		window.addEventListener('keydown', handleMovement);
-		let id: number = requestAnimationFrame(updateBall);
+		let id: number = requestAnimationFrame(update);
 		return () => {
 			window.removeEventListener('keydown', handleMovement);
 			cancelAnimationFrame(id);
 		}
-	}, [ballX, ballY, velX, velY])
+	}
+	}, [ballX, ballY, velX, velY, isRunning])
 	return (
 		<Stage width={WIDTH} height={HEIGHT}>
 			<Layer>
@@ -133,7 +137,11 @@ function App() {
 				<Image image={textures.ballTexture} x={ballX} y={ballY} />
 			</Layer>) : 
 			(<Layer>
-				<Text text={'wait ' + count.toString()} fill="white" x={350} y={300} fontSize={40}></Text>
+				<Text text='Get ready ! ' fill="white" x={310} y={200} fontSize={40}></Text>
+				<Text text={count.toString()} fill="white" x={400} y={250} fontSize={40}></Text>
+				<Image image={textures.paddleTexture} x={0} y={250} />
+				<Image image={textures.paddleTexture} x={780} y={250} />
+				<Image image={textures.ballTexture} x={400} y={300} />
 			</Layer>) } 
 		</Stage>
 		);
