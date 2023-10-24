@@ -21,15 +21,16 @@ function App() {
 		paddleTexture: new window.Image,
 	}
 	const [playerPosition, setPlayerPositon] = useState<Vector>({x:0, y: 250});
-	const [opponentPosition, setOpponentrPositon] = useState<Vector>({x:780, y: 250});
+	const [opponentPosition, setOpponentPositon] = useState<Vector>({x:780, y: 250});
 	const [ballX, setBallX] = useState<number>(400);
 	const [ballY, setBallY] = useState<number>(300);
 	const [velX, setVelX] = useState<number>(5);
-	const [velY, setVelY] = useState<number>(0);
+	const [velY, setVelY] = useState<number>(5);
 	const [isRunning, setRunning] = useState<boolean>(true);
 	const [playerScore, setPlayerScore] = useState<number>(0);
 	const [opponentScore, setOpponentScore] = useState<number>(0);
 	const [count, setCount] = useState<number>(3);
+
 	textures.paddleTexture.src = 'assets/paddle.png';
 	textures.ballTexture.src = 'assets/ball.png';
 	const handleMovement = (e: KeyboardEvent) => {
@@ -89,7 +90,9 @@ function App() {
 						//resets player paddle position
 						setRunning(false);
 						const pos: Vector = {x: 0, y: 250};
+						const opPos: Vector = {x: 780, y: 250};
 						setPlayerPositon(pos);
+						setOpponentPositon(opPos);
 						setOpponentScore(opponentScore + 1);
 						if (Math.floor(Math.random() * 4) > 2)
 							setVelX(-5);
@@ -102,6 +105,10 @@ function App() {
 					if (x + 40 > WIDTH)
 					{
 						setRunning(false);
+						const pos: Vector = {x: 0, y: 250};
+						const opPos: Vector = {x: 780, y: 250};
+						setPlayerPositon(pos);
+						setOpponentPositon(opPos);
 						setPlayerScore(playerScore + 1);
 						if (Math.floor(Math.random() * 4) > 2)
 							setVelX(5);
@@ -120,6 +127,18 @@ function App() {
 						setVelY(-5);
 					return (y + velY);
 				})
+
+				setOpponentPositon( (pos: Vector): Vector => {
+					if (opponentPosition.y >= 0 && opponentPosition.y + 100 <= 600)
+					{
+						console.log('helo im setting oponent position', opponentPosition);
+						if (ballY >= pos.y)
+							return ({x: pos.x, y: pos.y + 5});
+						else if (ballY < pos.y)
+							return ({x: pos.x, y: pos.y - 5});
+					}
+					return (opponentPosition);
+				})
 			}
 			//player movement
 			window.addEventListener('keydown', handleMovement);
@@ -129,7 +148,7 @@ function App() {
 				cancelAnimationFrame(id);
 		}
 	}
-	}, [ballX, ballY, velX, velY, isRunning])
+	}, [ballX, ballY, velX, velY, isRunning, opponentPosition])
 	return (
 		<Stage width={WIDTH} height={HEIGHT}>
 			<Layer>
