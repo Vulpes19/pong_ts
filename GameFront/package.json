@@ -19,7 +19,8 @@
     "react-konva": "^18.2.10",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
-    "tailwind": "^4.0.0"
+    "tailwind": "^4.0.0",
+    "zustand": "^4.4.4"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
