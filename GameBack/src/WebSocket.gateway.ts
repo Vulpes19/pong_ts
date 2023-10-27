@@ -31,7 +31,6 @@ export class WebSocketGatewayC implements OnGatewayConnection {
     
     @SubscribeMessage('movePlayer')
     movePlayer(client: any, data: {direction: string}) {
-        console.log('hello')
         const updatedPositions = this.player.movePlayer(client, data.direction);
         this.server.emit('PlayerPositionsUpdate', updatedPositions);
     }

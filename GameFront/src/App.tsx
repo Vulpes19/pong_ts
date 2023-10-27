@@ -3,11 +3,8 @@ import { useState } from "react";
 import { Stage, Layer, Image, Text, Rect } from "react-konva";
 import Konva from "konva";
 import io from 'socket.io-client';
+import { playerStore, ballStore, scoreStore, socketStore } from "./Stores";
 
-interface Vector {
-	x: number,
-	y: number
-};
 
 interface Textures {
 	ballTexture: HTMLImageElement,
@@ -22,18 +19,14 @@ function App() {
 		ballTexture: new window.Image,
 		paddleTexture: new window.Image,
 	}
-	const [playerPosition, setPlayerPositon] = useState<Vector>({x:0, y: 250});
-	const [opponentPosition, setOpponentPositon] = useState<Vector>({x:780, y: 250});
-	const [ballX, setBallX] = useState<number>(400);
-	const [ballY, setBallY] = useState<number>(300);
-	const [velX, setVelX] = useState<number>(5);
-	const [velY, setVelY] = useState<number>(5);
+	const {paddle1, paddle2, movePaddle1, movePaddle2} = playerStore();
+	const {ballPosition, ballVelocity, update, setVelX, setVelY} = ballStore();
+	const {paddle1Score, paddle2Score, updatePaddle1Score, updatePaddle2Score} = scoreStore();
+	const {socket, connect, send, receive, disconnect} = socketStore();
 	const [isRunning, setRunning] = useState<boolean>(true);
-	const [playerScore, setPlayerScore] = useState<number>(0);
-	const [opponentScore, setOpponentScore] = useState<number>(0);
 	const [count, setCount] = useState<number>(3);
-	const [testMsg, setTestMsg] = useState<string>();
-
+	// const [testMsg, setTestMsg] = useState<string>();
+	connect();
 	// useEffect( () => {
 	// 	// console.log('pss')÷
 	// 	const socket = io('ws://localhost:3001', {transports: ['websocket']});
@@ -48,17 +41,16 @@ function App() {
 	textures.paddleTexture.src = 'assets/paddle.png';
 	textures.ballTexture.src = 'assets/ball.png';
 	const handleMovement = (e: KeyboardEvent) => {
-		const socket = io('ws://localhost:3001', {transports: ['websocket']});
-		if (e.key === 'ArrowUp' && playerPosition.y > 0 )
+		// const socket = io('ws://localhost:3001', {transports: ['websocket']});
+		if (e.key === 'ArrowUp' && paddle1.y > 0 )
 		{
-			socket.emit('movePlayer', {direction: 'saad'});
-			// const pos: Vector = {x: 0, y: playerPosition.y - 20};
-			// setPlayerPositon({x: 0, y: playerPosition.y - 20})
+			send(socket, 'saad', 'movePlayer');
+			// socket.emit('movePlayer', {direction: 'saad'});
 		}
-		if (e.key === 'ArrowDown' && playerPosition.y + 100 < 600)
+		if (e.key === 'ArrowDown' && paddle1.y + 100 < 600)
 		{
-			const pos: Vector = {x: 0, y: playerPosition.y + 20};
-			setPlayerPositon(pos);
+			// const pos: Vector = {x: 0, y: paddle1.y + 20};
+			// setPlayerPositon(pos);
 			// setPlayerPositon({x: 0, y: playerPosition.y + 20})
 		}
 	}
@@ -156,49 +148,40 @@ function App() {
 	// 			})
 	// // 		}
 	// // 		//player movement
-			socket.on('PlayerPositionsUpdate', (positions) => {
-				console.log(positions)
-				setPlayerPositon(positions);
-			})
+			receive(socket, (data) => {
+				console.log(data)
+			}, 'PlayerPositionsUpdate')
+			// socket.on('PlayerPositionsUpdate', (positions) => {
+			// 	console.log(positions)
+			// 	setPlayerPositon(positions);
+			// })
 			window.addEventListener('keydown', handleMovement);
 			// let id: number = requestAnimationFrame(update);
 			return () => {
 				window.removeEventListener('keydown', handleMovement);
+				disconnect(socket);
 				// cancelAnimationFrame(id);
 		}
-	}, [playerPosition])
-	// useEffect( () => {
-	// 	const socket = new WebSocket('ws://localhost:5173');
-
-	// 	socket.onmessage = (event) => {
-	// 		setTestMsg(event.data);
-	// 	}
-	// 	return () => {
-	// 		socket.close();
-	// 	}
-	// }, [])
+	}, [])
 	return (
 		<Stage width={WIDTH} height={HEIGHT}>
 			<Layer>
 				<Rect width={WIDTH} height={HEIGHT} fill="black"></Rect>
 			</Layer>
 			<Layer>
-				<Text text={testMsg} fill="white" x={400} y={150} fontSize={40}></Text>
-			</Layer>
-			<Layer>
 				<Rect width={WIDTH} height={HEIGHT} fill="black"></Rect>
 			</Layer>
 			{isRunning ? (
 			<Layer>
-				<Text text={playerScore.toString() + ' : ' + opponentScore.toString()} x={360} y={20} fill="white" fontSize={50}></Text>
-				<Image image={textures.paddleTexture} x={playerPosition.x} y={playerPosition.y} />
-				<Image image={textures.paddleTexture} x={opponentPosition.x} y={opponentPosition.y} />
-				<Image image={textures.ballTexture} x={ballX} y={ballY} />
+				<Text text={paddle1Score.toString() + ' : ' + paddle2Score.toString()} x={360} y={20} fill="white" fontSize={50}></Text>
+				<Image image={textures.paddleTexture} x={paddle1.x} y={paddle1.y} />
+				<Image image={textures.paddleTexture} x={paddle2.x} y={paddle2.y} />
+				<Image image={textures.ballTexture} x={ballPosition.x} y={ballPosition.y} />
 			</Layer>) : 
 			(<Layer>
 				<Text text='Get ready ! ' fill="white" x={310} y={200} fontSize={40}></Text>
 				<Text text={count.toString()} fill="white" x={400} y={250} fontSize={40}></Text>
-				<Text text={testMsg} fill="white" x={400} y={150} fontSize={40}></Text>
+				{/* <Text text={testMsg} fill="white" x={400} y={150} fontSize={40}></Text> */}
 				<Image image={textures.paddleTexture} x={0} y={250} />
 				<Image image={textures.paddleTexture} x={780} y={250} />
 				<Image image={textures.ballTexture} x={400} y={300} />
