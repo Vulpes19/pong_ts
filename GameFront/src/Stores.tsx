@@ -78,11 +78,17 @@ export const socketStore = create<SocketStore>((set) => ({
     socket: null,
     
     connect: () => {
-        const socket = io('ws://localhost:3001', {transports: ['websocket']});
-        set({socket});
+        const socket = io('ws://localhost:3001', {transports: ['websocket'], autoConnect: false});
+        socket.on('connect', () => {
+            console.log('socket is connected')
+            set({socket});
+        })
+        socket.connect();
     },
     send: (socket: Socket | null, msg: string, type: string) => {
+        console.log('im in send')
         if (socket) {
+            console.log('message is sent')
             socket.emit(type, msg);
         }
     },

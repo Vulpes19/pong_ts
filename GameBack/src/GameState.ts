@@ -1,9 +1,15 @@
+export interface Vector {
+    x: number,
+    y: number
+};
+
 export class GameState {
-    playerPositions: {paddle1: number, paddle2: number};
+    paddles: {y1: number, y2: number};
+    // playerPositions: {paddle1: Vector, paddle2: Vector};
     ballPositon: {x: number, y: number};
 
     constructor() {
-        this.playerPositions = {paddle1: 250, paddle2: 250};
+        this.paddles = {y1: 250, y2: 250};
         this.ballPositon = {x: 400, y: 300};
     };
 }

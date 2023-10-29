@@ -13,25 +13,21 @@ import { Server } from 'socket.io';
     origin: "http://localhost:5173",
     transports: ['websocket']
 }})
-export class WebSocketGatewayC implements OnGatewayConnection {
+
+export class WebSocketGatewayC {
     constructor(private player: PlayerService) {};
-
-
-    handleConnection(client: any, ...args: any[]) {
-        console.log("-------->", client.id);
-    }
 
     @WebSocketServer() server: Server;
 
     @SubscribeMessage('message')
-    sendMessage(client: any, payload: any): string {
-        return ('You sent: ${payload}');
+    sendMsg(client: any, data: string) {
+        this.server.emit('msg', 'helooooooo');
     }
-
     
     @SubscribeMessage('movePlayer')
-    movePlayer(client: any, data: {direction: string}) {
-        const updatedPositions = this.player.movePlayer(client, data.direction);
+    movePlayer(client: any, direction: string) {
+        const updatedPositions = this.player.movePlayer(client, direction);
         this.server.emit('PlayerPositionsUpdate', updatedPositions);
+        return 'positions updated';
     }
 }
