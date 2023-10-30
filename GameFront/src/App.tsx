@@ -40,7 +40,7 @@ function App() {
 		}
 		if (e.key === 'ArrowDown' && paddle1.y + 100 < 600)
 		{
-			send(socket, 'pskch', 'message');
+			send(socket, 'DOWN', 'movePlayer');
 		}
 	}
 	// //countdown
@@ -140,21 +140,18 @@ function App() {
 
 				receive(socket, (data) => {
 					console.log(data)
-					movePaddle1(data.y1)
+					movePaddle1(data.y1);
+					movePaddle2(data.y2);
 				}, 'PlayerPositionsUpdate')
-				receive(socket, (data) => {
-					console.log(data)
-					setTestMsg(data)
-				}, 'msg')
 				window.addEventListener('keydown', handleMovement);
 				// 		// let id: number = requestAnimationFrame(update);
 				return () => {
 					socket?.off('PlayerPositionsUpdate');
 					window.removeEventListener('keydown', handleMovement);
-					disconnect(socket);
+					// disconnect(socket);
 					// 			// cancelAnimationFrame(id);
 		}
-	}, [paddle1, socket])
+	}, [paddle1, paddle2, socket])
 	return (
 		<Stage width={WIDTH} height={HEIGHT}>
 			<Layer>

@@ -1,5 +1,6 @@
 import {
     OnGatewayConnection,
+    OnGatewayDisconnect,
     SubscribeMessage,
     WebSocketServer
 } from '@nestjs/websockets';
@@ -14,8 +15,15 @@ import { Server } from 'socket.io';
     transports: ['websocket']
 }})
 
-export class WebSocketGatewayC {
+export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconnect {
     constructor(private player: PlayerService) {};
+
+    handleConnection(client: any, ...args: any[]) {
+        console.log(client.id)
+    }
+    handleDisconnect(client: any) {
+        console.log("hello", client.id)
+    }
 
     @WebSocketServer() server: Server;
 
@@ -26,6 +34,7 @@ export class WebSocketGatewayC {
     
     @SubscribeMessage('movePlayer')
     movePlayer(client: any, direction: string) {
+        console.log('movePlayer');
         const updatedPositions = this.player.movePlayer(client, direction);
         this.server.emit('PlayerPositionsUpdate', updatedPositions);
         return 'positions updated';
