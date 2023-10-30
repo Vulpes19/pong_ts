@@ -8,16 +8,16 @@ export class PlayerService {
     
     movePlayer(client, direction: string) {
         let playerPositions = this.gameState.paddles;
-        console.log(direction)
-        if (direction === 'UP')
+        // console.log(direction)
+        if (direction === 'UP' && playerPositions.y1 > 0)
         {
-            playerPositions.y1 -= 10;
+            playerPositions.y1 -= 20;
         }
-        if (direction === 'DOWN')
+        if (direction === 'DOWN'  && playerPositions.y1 + 100 < 600)
         {
-            playerPositions.y1 += 10;
+            playerPositions.y1 += 20;
         }
-        console.log(playerPositions)
+        // console.log(playerPositions)
         return (playerPositions);
     }
 }

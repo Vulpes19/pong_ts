@@ -20,7 +20,7 @@ function App() {
 		paddleTexture: new window.Image,
 	}
 	const {paddle1, paddle2, movePaddle1, movePaddle2} = playerStore();
-	const {ballPosition, ballVelocity, update, setVelX, setVelY} = ballStore();
+	const {ballPosition, updateBall} = ballStore();
 	const {paddle1Score, paddle2Score, updatePaddle1Score, updatePaddle2Score} = scoreStore();
 	const {socket, connect, send, receive, disconnect} = socketStore();
 	const [isRunning, setRunning] = useState<boolean>(true);
@@ -34,7 +34,7 @@ function App() {
 		connect();
 	}, []);
 	const handleMovement = (e: KeyboardEvent) => {
-		if (e.key === 'ArrowUp' && paddle1.y > 0 )
+		if (e.key === 'ArrowUp' )
 		{
 			send(socket, 'UP', 'movePlayer');
 		}
@@ -64,94 +64,27 @@ function App() {
 			
 			// //gameloop
 			useEffect( () => {
-				// // 	if (isRunning) {
-					// 		const update = () => {
-						// 			//collision with side window borders
-						// 			setBallX( (x: number): number => {
-							// 				//player paddle collision
-							// 				if (x < playerPosition.x + 25 && ballY >= playerPosition.y && ballY <= playerPosition.y + 100)
-							// 				{	
-								// 					setVelX(5);
-								// 					return (x + velX);
-								// 				}
-								// 				//oponent paddle collision
-								// 				if (x + 30 > opponentPosition.x && ballY >= opponentPosition.y && ballY <= playerPosition.y + 100)
-								// 				{	
-									// 					setVelX(-5);
-									// 					return (x + velX);
-									// 				}
-									// 				//oponent scores
-									// 				if (x < 0)
-									// 				{
-										// 					//resets player paddle position
-										// 					setRunning(false);
-										// 					const pos: Vector = {x: 0, y: 250};
-										// 					const opPos: Vector = {x: 780, y: 250};
-										// 					setPlayerPositon(pos);
-										// 					setOpponentPositon(opPos);
-										// 					setOpponentScore(opponentScore + 1);
-										// 					if (Math.floor(Math.random() * 4) > 2)
-										// 						setVelX(-5);
-										// 					else
-										// 						setVelX(5);
-										// 					setBallY(300);
-										// 					return (400);
-										// 				}
-										// 				//player scores
-										// 				if (x + 40 > WIDTH)
-										// 				{
-											// 					setRunning(false);
-											// 					const pos: Vector = {x: 0, y: 250};
-											// 					const opPos: Vector = {x: 780, y: 250};
-	// 					setPlayerPositon(pos);
-	// 					setOpponentPositon(opPos);
-	// 					setPlayerScore(playerScore + 1);
-	// 					if (Math.floor(Math.random() * 4) > 2)
-	// 						setVelX(5);
-	// 					else
-	// 						setVelX(-5);
-	// 					setBallY(300);
-	// 					return (400);
-	// 				}
-	// 				return (x + velX);
-	// 			})
-	// 			//collision with the top and bottom window border
-	// 			setBallY( (y: number): number => {
-		// 				if (y <= 0 )
-		// 					setVelY(5);
-		// 				if (y + 30 >= HEIGHT)
-		// 					setVelY(-5);
-		// 				return (y + velY);
-		// 			})
-		
-		// 			setOpponentPositon( (pos: Vector): Vector => {
-			// 				if (opponentPosition.y >= 0 && opponentPosition.y + 100 <= 600)
-	// 				{
-		// 					console.log('helo im setting oponent position', opponentPosition);
-		// 					if (ballY >= pos.y)
-		// 						return ({x: pos.x, y: pos.y + 5});
-		// 					else if (ballY < pos.y)
-		// 						return ({x: pos.x, y: pos.y - 5});
-		// 				}
-		// 				return (opponentPosition);
-		// 			})
-		// // 		}
-		// // 		//player movement
-
+				const update = () => {
+					send(socket, '', 'updateBall');
+				}
+				//receives new player positions
 				receive(socket, (data) => {
 					console.log(data)
 					movePaddle1(data.y1);
 					movePaddle2(data.y2);
-				}, 'PlayerPositionsUpdate')
+				}, 'PlayerPositionsUpdate');
+				//receives updated ball positions
+				receive(socket, (data) => {
+					updateBall(data.x, data.y);
+				}, 'BallPositionUpdate')
 				window.addEventListener('keydown', handleMovement);
-				// 		// let id: number = requestAnimationFrame(update);
+				let id: number = requestAnimationFrame(update);
 				return () => {
 					socket?.off('PlayerPositionsUpdate');
 					window.removeEventListener('keydown', handleMovement);
-					// disconnect(socket);
-					// 			// cancelAnimationFrame(id);
+					cancelAnimationFrame(id);
 		}
-	}, [paddle1, paddle2, socket])
+	}, [paddle1, paddle2, ballPosition, socket])
 	return (
 		<Stage width={WIDTH} height={HEIGHT}>
 			<Layer>

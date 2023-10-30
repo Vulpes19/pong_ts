@@ -23,27 +23,14 @@ export const playerStore = create<PlayerPositions>((set) => ({
 
 interface BallMovement {
     ballPosition: Vector,
-	ballVelocity: Vector,
-    update: () => void,
-    setVelX: (newVelX: number) => void,
-    setVelY: (newVelY: number) => void
+    updateBall: (x: number, y: number) => void
 };
 export const ballStore = create<BallMovement>((set) => ({
     ballPosition: {x: 400, y: 300},
-    ballVelocity: {x: 5, y: 5},
     
-    update: () => set((state) => ({
-        ballPosition: {x: state.ballPosition.x + state.ballVelocity.x, y: state.ballPosition.y + state.ballVelocity.y},
-        ballVelocity: {...state.ballVelocity}
-    })),
-    setVelX: (newVelX: number) => set((state) => ({
-        ballVelocity: {x: newVelX, y: state.ballVelocity.y},
-        ballPosition: {...state.ballPosition}
-    })),
-    setVelY: (newVelY: number) => set((state) => ({
-        ballVelocity: {x: state.ballVelocity.x, y: newVelY},
-        ballPosition: {...state.ballPosition}
-    })),
+    updateBall: (newX: number, newY: number) => set(({
+        ballPosition: {x: newX, y: newY},
+    }))
 }));
 
 interface Score {

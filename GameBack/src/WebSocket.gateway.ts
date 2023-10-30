@@ -7,6 +7,7 @@ import {
 
 import { WebSocketGateway } from '@nestjs/websockets';
 import { PlayerService } from './player.service';
+import { BallService } from './ball.service';
 import { subscribe } from 'diagnostics_channel';
 import { Server } from 'socket.io';
 
@@ -16,7 +17,7 @@ import { Server } from 'socket.io';
 }})
 
 export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconnect {
-    constructor(private player: PlayerService) {};
+    constructor(private player: PlayerService, private ball: BallService) {};
 
     handleConnection(client: any, ...args: any[]) {
         console.log(client.id)
@@ -34,9 +35,15 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
     
     @SubscribeMessage('movePlayer')
     movePlayer(client: any, direction: string) {
-        console.log('movePlayer');
+        // console.log('movePlayer');
         const updatedPositions = this.player.movePlayer(client, direction);
         this.server.emit('PlayerPositionsUpdate', updatedPositions);
         return 'positions updated';
+    }
+
+    @SubscribeMessage('updateBall')
+    updateBall(client: any) {
+        const updatedBall = this.ball.update();
+        this.server.emit('BallPositionUpdate', updatedBall);
     }
 }
