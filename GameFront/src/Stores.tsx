@@ -36,19 +36,19 @@ export const ballStore = create<BallMovement>((set) => ({
 interface Score {
     paddle1Score: number,
     paddle2Score: number,
-    updatePaddle1Score: () => void,
-    updatePaddle2Score: () => void
+    updatePaddle1Score: (score: number) => void,
+    updatePaddle2Score: (score: number) => void
 };
 export const scoreStore = create<Score>((set) => ({
     paddle1Score: 0,		
     paddle2Score: 0,
     
-    updatePaddle1Score: () => set((state) => ({
-        paddle1Score: state.paddle1Score + 1,
+    updatePaddle1Score: (score: number) => set((state) => ({
+        paddle1Score: score,
         paddle2Score: state.paddle2Score
     })),
-    updatePaddle2Score: () => set((state) => ({
-        paddle2Score: state.paddle2Score + 1,
+    updatePaddle2Score: (score: number) => set((state) => ({
+        paddle2Score: score,
         paddle1Score: state.paddle1Score
     })),
 }));
@@ -67,15 +67,12 @@ export const socketStore = create<SocketStore>((set) => ({
     connect: () => {
         const socket = io('ws://localhost:3001', {transports: ['websocket'], autoConnect: false});
         socket.on('connect', () => {
-            console.log('socket is connected')
             set({socket});
         })
         socket.connect();
     },
     send: (socket: Socket | null, msg: string, type: string) => {
-        console.log('im in send')
         if (socket) {
-            console.log('message is sent')
             socket.emit(type, msg);
         }
     },
