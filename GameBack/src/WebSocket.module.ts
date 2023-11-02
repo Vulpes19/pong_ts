@@ -5,9 +5,8 @@ import { PlayerService } from "./player.service";
 import { BallService } from "./ball.service";
 import { GameState } from "./GameState";
 import { ScoreService } from "./score.service";
-
+import { Game } from "./Game";
 @Module({
-    providers: [WebSocketGatewayC, PlayerService, BallService, GameState, ScoreService],
-    controllers: [AppController]
+    providers: [WebSocketGatewayC, Game]
 })
 export class WebSocketModule {}

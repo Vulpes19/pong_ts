@@ -37,12 +37,10 @@ function App() {
 		if (e.key === 'ArrowUp' )
 		{
 			send(socket, 'UP', 'movePlayer');
-			// movePaddle1(paddle1.y - 20);
 		}
-		if (e.key === 'ArrowDown' && paddle1.y + 100 < 600)
+		if (e.key === 'ArrowDown')
 		{
 			send(socket, 'DOWN', 'movePlayer');
-			// movePaddle1(paddle1.y + 20);
 		}
 	}
 	// //countdown
@@ -66,23 +64,32 @@ function App() {
 			
 			// //gameloop
 	useEffect( () => {
+			console.log('Im in useEffect')
 			const update = () => {
-				send(socket, '', 'updateBall');
-				send(socket, '', 'updateScore');
+				// send(socket, '', 'updateBall');
+				// send(socket, '', 'updateScore');
 				receive(socket, (data) => {
-					updateBall(data.x, data.y);
-				}, 'BallPositionUpdate')
-				receive(socket, (data) => {
-					updatePaddle1Score(data.paddle1);
-					updatePaddle2Score(data.paddle2);
-				}, 'scoreUpdate')
+					if (data)
+						updateBall(data.x, data.y);
+				}, 'ballUpdate');
 			}
+			receive(socket, (data) => {
+				if (data)
+					updatePaddle2Score(data);
+			}, 'rightScoreUpdate');
+			receive(socket, (data) => {
+				if (data)
+					updatePaddle1Score(data);
+			}, 'leftScoreUpdate');
 			//receives new player positions
 			receive(socket, (data) => {
-				// console.log(data)
-				movePaddle1(data.y1);
-				movePaddle2(data.y2);
-			}, 'PlayerPositionsUpdate');
+				// if (data)
+					movePaddle1(data);
+			}, 'leftPlayerUpdate');
+			receive(socket, (data) => {
+				// if (data)
+					movePaddle2(data);
+			}, 'rightPlayerUpdate');
 			//receives updated ball positions
 			window.addEventListener('keydown', handleMovement);
 			let id: number = requestAnimationFrame(update);
