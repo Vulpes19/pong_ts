@@ -1,10 +1,8 @@
-import { KeyboardEventHandler, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useState } from "react";
 import { Stage, Layer, Image, Text, Rect } from "react-konva";
-import Konva from "konva";
-import io from 'socket.io-client';
 import { playerStore, ballStore, scoreStore, socketStore } from "./Stores";
-
+import { LoadingScreen } from "./Loading";
 
 interface Textures {
 	ballTexture: HTMLImageElement,
@@ -23,10 +21,7 @@ function App() {
 	const {ballPosition, updateBall} = ballStore();
 	const {paddle1Score, paddle2Score, updatePaddle1Score, updatePaddle2Score} = scoreStore();
 	const {socket, connect, send, receive, disconnect} = socketStore();
-	const [isRunning, setRunning] = useState<boolean>(true);
-	const [count, setCount] = useState<number>(3);
-	// const [msg, setMsg] = useState<boolean>(false);
-	const [testMsg, setTestMsg] = useState<string>();
+	const [isRunning, setRunning] = useState<boolean>(false);
 
 	textures.paddleTexture.src = 'assets/paddle.png';
 	textures.ballTexture.src = 'assets/ball.png';
@@ -64,41 +59,38 @@ function App() {
 			
 			// //gameloop
 	useEffect( () => {
-			console.log('Im in useEffect')
+		receive(socket, (start) => {
+			setRunning(start);
+		}, 'startGame');
+		if (isRunning)
+		{
 			const update = () => {
-				// send(socket, '', 'updateBall');
-				// send(socket, '', 'updateScore');
 				receive(socket, (data) => {
-					if (data)
-						updateBall(data.x, data.y);
+					updateBall(data.x, data.y);
 				}, 'ballUpdate');
 			}
 			receive(socket, (data) => {
-				if (data)
-					updatePaddle2Score(data);
+				updatePaddle2Score(data);
 			}, 'rightScoreUpdate');
 			receive(socket, (data) => {
-				if (data)
-					updatePaddle1Score(data);
+				updatePaddle1Score(data);
 			}, 'leftScoreUpdate');
 			//receives new player positions
 			receive(socket, (data) => {
-				// if (data)
-					movePaddle1(data);
+				movePaddle1(data);
 			}, 'leftPlayerUpdate');
 			receive(socket, (data) => {
-				// if (data)
-					movePaddle2(data);
+				movePaddle2(data);
 			}, 'rightPlayerUpdate');
 			//receives updated ball positions
 			window.addEventListener('keydown', handleMovement);
 			let id: number = requestAnimationFrame(update);
 			return () => {
-				// socket?.off('PlayerPositionsUpdate');
 				window.removeEventListener('keydown', handleMovement);
 				cancelAnimationFrame(id);
 			}
-	}, [paddle1, paddle2, ballPosition, paddle1Score, paddle2Score,socket])
+		}
+	}, [paddle1, paddle2, ballPosition, paddle1Score, paddle2Score,socket, isRunning])
 	return (
 		<Stage width={WIDTH} height={HEIGHT}>
 			<Layer>
@@ -110,14 +102,17 @@ function App() {
 				<Image image={textures.paddleTexture} x={paddle1.x} y={paddle1.y} />
 				<Image image={textures.paddleTexture} x={paddle2.x} y={paddle2.y} />
 				<Image image={textures.ballTexture} x={ballPosition.x} y={ballPosition.y} />
-			</Layer>) : 
-			(<Layer>
-				<Text text='Get ready ! ' fill="white" x={310} y={200} fontSize={40}></Text>
-				<Text text={count.toString()} fill="white" x={400} y={250} fontSize={40}></Text>
-				<Image image={textures.paddleTexture} x={0} y={250} />
-				<Image image={textures.paddleTexture} x={780} y={250} />
-				<Image image={textures.ballTexture} x={400} y={300} />
-			</Layer>) } 
+			</Layer>) : (
+				<LoadingScreen/>
+			)
+			// (<Layer>
+			// 	<Text text='Get ready ! ' fill="white" x={310} y={200} fontSize={40}></Text>
+			// 	<Text text={count.toString()} fill="white" x={400} y={250} fontSize={40}></Text>
+			// 	<Image image={textures.paddleTexture} x={0} y={250} />
+			// 	<Image image={textures.paddleTexture} x={780} y={250} />
+			// 	<Image image={textures.ballTexture} x={400} y={300} />
+			// </Layer>) 
+			} 
 		</Stage>
 		);
 	}

@@ -29,6 +29,13 @@ export class Game {
         this.score = { left: 0, right: 0 };
         this.leftPaddlePosition = 250;
         this.rightPaddlePosition = 250;
+        // this.server?.to(this.room).emit('startGame', true);
+        this.client1.on('disconnect', () => {
+            console.log('left paddle disconected');
+        })
+        this.client2.on('disconnect', () => {
+            console.log('right paddle disconected');
+        })
         this.paddleMovement();
     };
 
@@ -51,10 +58,8 @@ export class Game {
     };
 
     gameLoop() {
-        this.updateBall();
-        setTimeout(this.gameLoop.bind(this), FRAME_RATE);
+        setInterval(this.updateBall.bind(this), FRAME_RATE);
     };
-
 
     updateBall() {
         if (this.ballPosition.y < 0 ||
@@ -85,6 +90,9 @@ export class Game {
         this.server.to(this.room).emit('ballUpdate', this.ballPosition);
     };
 
+    endGame() {
+
+    }
     private room: string;
     private leftPaddlePosition: number;
     private rightPaddlePosition: number;
