@@ -30,12 +30,12 @@ export class Game {
         this.leftPaddlePosition = 250;
         this.rightPaddlePosition = 250;
         // this.server?.to(this.room).emit('startGame', true);
-        this.client1.on('disconnect', () => {
+        this.client1?.on('disconnect', () => {
             console.log('left paddle disconected');
-        })
-        this.client2.on('disconnect', () => {
+        });
+        this.client2?.on('disconnect', () => {
             console.log('right paddle disconected');
-        })
+        });
         this.paddleMovement();
     };
 
@@ -80,9 +80,13 @@ export class Game {
             this.ballPosition.y = resetBallPosition.y;
             this.server.to(this.room).emit('leftScoreUpdate', this.score.left);
         }
-        else if (this.ballPosition.y >= this.leftPaddlePosition &&
+        else if ((this.ballPosition.y >= this.leftPaddlePosition &&
             this.ballPosition.y <= this.leftPaddlePosition + paddleHeight &&
-            this.ballPosition.x < paddle1X + paddleWidth) {
+            this.ballPosition.x < paddle1X + paddleWidth) || (
+                this.ballPosition.y >= this.rightPaddlePosition &&
+                this.ballPosition.y <= this.rightPaddlePosition + paddleHeight &&
+                this.ballPosition.x >= paddle2X
+            )) {
             this.ballVelocity.x = -this.ballVelocity.x;
         }
         this.ballPosition.x = this.ballPosition.x + this.ballVelocity.x;

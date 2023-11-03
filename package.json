@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:backend": "cd GameBack && npm run start:dev",
+    "start:backend_dev": "cd GameBack && npm run start:dev",
+    "start:backend_prod": "cd GameBack && npm run start:prod",
     "start:frontend": "cd GameFront && npm run dev",
     "start:all": "npm-run-all --parallel start:backend start:frontend"
   },

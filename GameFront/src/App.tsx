@@ -11,6 +11,7 @@ interface Textures {
 
 const WIDTH: number = 800;
 const HEIGHT: number = 600;
+const FRAME_RATE = 1000 / 60;
 
 function App() {
 	const textures: Textures = {
@@ -72,17 +73,18 @@ function App() {
 			receive(socket, (data) => {
 				updatePaddle2Score(data);
 			}, 'rightScoreUpdate');
+			//receives l
 			receive(socket, (data) => {
 				updatePaddle1Score(data);
 			}, 'leftScoreUpdate');
-			//receives new player positions
+			//receives left player position
 			receive(socket, (data) => {
 				movePaddle1(data);
 			}, 'leftPlayerUpdate');
+			//receives right paddle position
 			receive(socket, (data) => {
 				movePaddle2(data);
 			}, 'rightPlayerUpdate');
-			//receives updated ball positions
 			window.addEventListener('keydown', handleMovement);
 			let id: number = requestAnimationFrame(update);
 			return () => {
