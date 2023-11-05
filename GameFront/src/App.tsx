@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import { Stage, Layer, Image, Text, Rect } from "react-konva";
-import { playerStore, ballStore, scoreStore, socketStore } from "./Stores";
-import { LoadingScreen } from "./Loading";
+import { playerStore, ballStore, scoreStore, socketStore } from "./utils/Stores";
+import { LoadingScreen } from "./components/Loading";
 
 interface Textures {
 	ballTexture: HTMLImageElement,
