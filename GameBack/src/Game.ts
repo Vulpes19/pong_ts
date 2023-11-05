@@ -44,16 +44,18 @@ export class Game {
 
     paddleMovement() {
         this.client1?.on('movePlayer', (direction) => {
-            if (direction == 'UP')
+            console.log(this.leftPaddlePosition)
+            if (direction == 'UP' && this.leftPaddlePosition > 0)
                 this.leftPaddlePosition -= 10;
-            else if (direction == 'DOWN')
+            else if (direction == 'DOWN' && this.leftPaddlePosition + paddleHeight < HEIGHT)
                 this.leftPaddlePosition += 10;
             this.server.to(this.room).emit('leftPlayerUpdate', this.leftPaddlePosition);
         });
         this.client2?.on('movePlayer', (direction) => {
-            if (direction == 'UP')
+            console.log(this.rightPaddlePosition)
+            if (direction == 'UP' && this.rightPaddlePosition > 0)
                 this.rightPaddlePosition -= 10;
-            else if (direction == 'DOWN')
+            else if (direction == 'DOWN' && this.rightPaddlePosition + paddleHeight < HEIGHT)
                 this.rightPaddlePosition += 10;
             this.server.to(this.room).emit('rightPlayerUpdate', this.rightPaddlePosition);
         });

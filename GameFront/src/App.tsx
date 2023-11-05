@@ -30,7 +30,7 @@ function App() {
 		connect();
 	}, []);
 	const handleMovement = (e: KeyboardEvent) => {
-		if (e.key === 'ArrowUp' )
+		if (e.key === 'ArrowUp')
 		{
 			send(socket, 'UP', 'movePlayer');
 		}
