@@ -20,7 +20,7 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 	
 	@WebSocketServer() server: Server;
 
-	constructor() {
+	constructor(private eventEmitter: EventEmitter2) {
 		this.roomsNbr = 0;
 		setInterval(this.matchmaking.bind(this), 2000);
 	};
@@ -88,5 +88,4 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 	private queue: Socket[] = [];
 	private games = new Map<string, Game>();
 	private roomsNbr: number;
-	private eventEmitter = new EventEmitter2();
 };

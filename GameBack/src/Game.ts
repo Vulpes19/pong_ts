@@ -44,7 +44,6 @@ export class Game {
 
     paddleMovement() {
         this.client1?.on('movePlayer', (direction) => {
-            console.log(this.leftPaddlePosition)
             if (direction == 'UP' && this.leftPaddlePosition > 0)
                 this.leftPaddlePosition -= 10;
             else if (direction == 'DOWN' && this.leftPaddlePosition + paddleHeight < HEIGHT)
@@ -52,7 +51,6 @@ export class Game {
             this.server.to(this.room).emit('leftPlayerUpdate', this.leftPaddlePosition);
         });
         this.client2?.on('movePlayer', (direction) => {
-            console.log(this.rightPaddlePosition)
             if (direction == 'UP' && this.rightPaddlePosition > 0)
                 this.rightPaddlePosition -= 10;
             else if (direction == 'DOWN' && this.rightPaddlePosition + paddleHeight < HEIGHT)
