@@ -9,6 +9,7 @@ import { WebSocketGateway } from '@nestjs/websockets';
 import { subscribe } from 'diagnostics_channel';
 import { Server, Socket } from 'socket.io';
 import { Game } from './Game';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
 @WebSocketGateway(3001,{ cors: {
 	origin: "http://localhost:5173",
@@ -28,6 +29,7 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 		console.log('client: ', client.id, ' has connected');
 		this.queue.push(client);
 	}
+
 	handleDisconnect(client: Socket) {
 		console.log('client: ', client.id, ' has disconnected');
 		const index = this.queue?.indexOf(client);
@@ -42,7 +44,7 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 			console.log('found a match !');
 			const socket1: Socket = this.queue.pop();
 			const socket2: Socket = this.queue.pop();
-			const roomNbr = this.roomsNbr + 1;
+			const roomNbr: number = this.roomsNbr + 1;
 			socket1.join("room " + roomNbr.toString());
 			socket2.join("room " + roomNbr.toString());
 			this.server?.to("room " + roomNbr.toString()).emit('startGame', true);
@@ -51,12 +53,21 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 	};
 
 	startGame(socket1: Socket, socket2: Socket, ID: number) {
-		const game = new Game(socket1, socket2, this.server, ID);
+		const game = new Game(socket1, socket2, this.server, this.eventEmitter, ID);
 		this.games.set("room " + ID.toString(), game);
 		game.gameLoop();
 	};
 
+	@OnEvent('delete.game')
+	deleteGame(room: string) {
+		if (this.games.delete(room))
+			console.log('room is deleted');
+		else
+			console.log('room not found');
+	}
+
 	private queue: Socket[] = [];
 	private games = new Map<string, Game>();
 	private roomsNbr: number;
+	private eventEmitter = new EventEmitter2();
 };

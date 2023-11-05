@@ -1,4 +1,5 @@
 import { Socket, Server } from "socket.io";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 interface Vector {
     x: number,
@@ -21,19 +22,21 @@ const ballRadius = 25;
 const FRAME_RATE = 1000 / 60;
 
 export class Game {
-    constructor(private client1: Socket, private client2: Socket, private server: Server, private ID: number) {
+    constructor(private client1: Socket, private client2: Socket, private server: Server, private eventEmitter: EventEmitter2, private ID: number) {
         if (ID)
             this.room = "room " + ID.toString();
         this.ballPosition = { x: 400, y: 300 };
-        this.ballVelocity = { x: 5, y: 5 };
+        this.ballVelocity = { x: 10, y: 10 };
         this.score = { left: 0, right: 0 };
         this.leftPaddlePosition = 250;
         this.rightPaddlePosition = 250;
         // this.server?.to(this.room).emit('startGame', true);
-        this.client1.on('disconnect', () => {
+        this.client1?.on('disconnect', () => {
+            this.eventEmitter.emit('delete.game', this.room);
             console.log('left paddle disconected');
         })
-        this.client2.on('disconnect', () => {
+        this.client2?.on('disconnect', () => {
+            this.eventEmitter.emit('delete.game', this.room);
             console.log('right paddle disconected');
         })
         this.paddleMovement();
@@ -48,7 +51,6 @@ export class Game {
             this.server.to(this.room).emit('leftPlayerUpdate', this.leftPaddlePosition);
         });
         this.client2?.on('movePlayer', (direction) => {
-            // console.log('received paddle movement')
             if (direction == 'UP')
                 this.rightPaddlePosition -= 10;
             else if (direction == 'DOWN')
@@ -64,9 +66,10 @@ export class Game {
     updateBall() {
         if (this.ballPosition.y < 0 ||
             this.ballPosition.y + ballRadius > HEIGHT) {
-            this.ballVelocity.y = -this.ballVelocity.y;
+                this.ballVelocity.y = -this.ballVelocity.y;
         }
         else if (this.ballPosition.x < 0) {
+            this.acceleration = 1;
             this.ballVelocity.x = -this.ballVelocity.x;
             this.score.right += 1;
             this.ballPosition.x = resetBallPosition.x;
@@ -74,15 +77,20 @@ export class Game {
             this.server.to(this.room).emit('rightScoreUpdate', this.score.right);
         }
         else if (this.ballPosition.x + ballRadius > WIDTH) {
+            this.acceleration = 1;
             this.ballVelocity.x = -this.ballVelocity.x;
             this.score.left += 1;
             this.ballPosition.x = resetBallPosition.x;
             this.ballPosition.y = resetBallPosition.y;
             this.server.to(this.room).emit('leftScoreUpdate', this.score.left);
         }
-        else if (this.ballPosition.y >= this.leftPaddlePosition &&
+        else if ((this.ballPosition.y >= this.leftPaddlePosition &&
             this.ballPosition.y <= this.leftPaddlePosition + paddleHeight &&
-            this.ballPosition.x < paddle1X + paddleWidth) {
+            this.ballPosition.x < paddle1X + paddleWidth) || (
+                this.ballPosition.y >= this.rightPaddlePosition &&
+                this.ballPosition.y <= this.rightPaddlePosition + paddleHeight &&
+                this.ballPosition.x + ballRadius >= paddle2X 
+            )) {
             this.ballVelocity.x = -this.ballVelocity.x;
         }
         this.ballPosition.x = this.ballPosition.x + this.ballVelocity.x;
@@ -94,6 +102,7 @@ export class Game {
 
     }
     private room: string;
+    private acceleration: number = 1;
     private leftPaddlePosition: number;
     private rightPaddlePosition: number;
     private ballPosition: Vector;
