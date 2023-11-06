@@ -1,31 +1,37 @@
 import React from "react";
 import OnlineGame from "./OnlineGame";
+import OfflineGame from "./OfflineGame";
 import {useState} from "react"
 
-const [game, selectGame] = useState<string>('');
 
-const handleOfflineClick = () => {
-    selectGame('Offline');
+interface MenuProps {
+    game: string;
+    selectGame: (game: string) => void;
 }
 
-const handleOnlineClick = () => {
-    selectGame('Online');
-}
-
-function Buttons() {
+function Menu({game, selectGame}: MenuProps) {
+    const handleOfflineClick = () => {
+        selectGame('Offline');
+    };
+    
+    const handleOnlineClick = () => {
+        selectGame('Online');
+    };
+    function Buttons() {
+        return (
+            <div>
+                <button onClick={handleOfflineClick}>Offline</button>
+                <button onClick={handleOnlineClick}>Online</button>
+            </div>
+        );
+    };
     return (
         <div>
-            <button onClick={handleOfflineClick}>Offline</button>
-            <button onClick={handleOnlineClick}>Online</button>
-        </div>
-    );
-}
-export function Menu() {
-    return (
-        <div>
-            <Buttons/>
-            {game === 'Offline' && <OnlineGame/>};
-            {game === 'Online' && <OnlineGame/>};
+            {game === '' && <Buttons/>}
+            {game === 'Offline' && <OfflineGame/>}
+            {game === 'Online' && <OnlineGame/>}
         </div>
     )
-}
+};
+
+export default Menu;

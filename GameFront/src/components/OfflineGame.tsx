@@ -14,7 +14,8 @@ const paddle1X = 0;
 const paddle2X = 780;
 const paddleWidth = 25;
 const paddleHeight = 100;
-const resetBallPosition = { x: 400, y: 300 };
+const resetBallPositionX = 400;
+const resetBallPositionY = 300
 const ballRadius = 25;
 const FRAME_RATE = 1000 / 60;
 
@@ -60,39 +61,58 @@ function OnlineGame() {
             }
         }
 	}, [isRunning, count])
-			
+	
 			// //gameloop
 	useEffect( () => {
+        let isFrameUpdated = false;
+        const resetBall = () => {
+            console.log('pchakh')
+            updateBall(400, 300);
+        }
 		if (isRunning)
 		{
 			const update = () => {
-                if (ballPosition.y < 0 ||
-                    ballPosition.y + ballRadius > HEIGHT) {
-                        setVelY(-velocity.y);
+                if (isFrameUpdated)
+                    return ;
+                if (ballPosition.y < 0) {
+                    setVelY(5);
+                }
+                else if (ballPosition.y + ballRadius > HEIGHT) {
+                    setVelY(-5);
                 }
                 else if (ballPosition.x < 0) {
-                    setVelX(-velocity.x);
+                    setVelX(5);
+                    resetBall();
                     updatePaddle2Score(paddle2Score + 1);
-                    updateBall(resetBallPosition.x, resetBallPosition.y);
+                    // updateBall(resetBallPositionX, resetBallPositionY);
                 }
                 else if (ballPosition.x + ballRadius > WIDTH) {
-                    setVelX(-velocity.x);
+                    setVelX(-5);
+                    resetBall();
                     updatePaddle1Score(paddle1Score + 1);
-                    updateBall(resetBallPosition.x, resetBallPosition.y);
+                    // updateBall(resetBallPositionX, resetBallPositionY);
                 }
-                else if ((ballPosition.y >= paddle1.y &&
+                else if (ballPosition.y >= paddle1.y &&
                     ballPosition.y <= paddle1.y + paddleHeight &&
-                    ballPosition.x < paddle1X + paddleWidth) || (
-                        ballPosition.y >= paddle2.y &&
-                        ballPosition.y <= paddle2.y + paddleHeight &&
-                        ballPosition.x + ballRadius >= paddle2X 
-                    )) {
-                    setVelX(-velocity.x);
+                    ballPosition.x < paddle1X + paddleWidth) {
+                    setVelX(5);
                 }
+                else if (ballPosition.y >= paddle2.y &&
+                    ballPosition.y <= paddle2.y + paddleHeight &&
+                    ballPosition.x + ballRadius >= paddle2X) {
+                    setVelX(-5);
+                }
+                isFrameUpdated = true;
                 updateBall(ballPosition.x + velocity.x, ballPosition.y + velocity.y);
 			}
+            let id: number;
+            const frame = () => {
+                update();
+                isFrameUpdated = false;
+                id = requestAnimationFrame(frame);
+            }
 			window.addEventListener('keydown', handleMovement);
-			let id: number = requestAnimationFrame(update);
+			id = requestAnimationFrame(frame);
 			return () => {
 				window.removeEventListener('keydown', handleMovement);
 				cancelAnimationFrame(id);
@@ -103,7 +123,7 @@ function OnlineGame() {
             <>
             <Stage width={WIDTH} height={HEIGHT}>
 			<Layer>
-				<Rect width={WIDTH} height={HEIGHT} fill="RED"></Rect>
+				<Rect width={WIDTH} height={HEIGHT} fill="BLACK"></Rect>
 			</Layer>
 			{isRunning ? (
                 <Layer>

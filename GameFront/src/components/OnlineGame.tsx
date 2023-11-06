@@ -94,10 +94,10 @@ function OnlineGame() {
 		}
 	}, [paddle1, paddle2, ballPosition, paddle1Score, paddle2Score,socket, isRunning])
 	return (
-		// <Stage width={WIDTH} height={HEIGHT}>
-			// <Layer>
-			// 	<Rect width={WIDTH} height={HEIGHT} fill="black"></Rect>
-			// </Layer>
+		<Stage width={WIDTH} height={HEIGHT}>
+			<Layer>
+				<Rect width={WIDTH} height={HEIGHT} fill="black"></Rect>
+			</Layer>
             <>
 			{isRunning ? (
                 <Layer>
@@ -110,7 +110,7 @@ function OnlineGame() {
                 )
 			}
             </> 
-		// </Stage>
+		</Stage>
 		);
 	}
 	
