@@ -1,6 +1,6 @@
 import React from "react";
 import OnlineGame from "./OnlineGame";
-import OfflineGame from "./OfflineGame";
+import OfflineGame from "./PracticeGame";
 import {useState} from "react"
 
 

@@ -1,4 +1,4 @@
-import {create} from 'zustand'
+import {create, createStore} from 'zustand'
 import {io, Socket} from 'socket.io-client';
 
 interface Vector {
@@ -27,6 +27,8 @@ interface BallMovement {
     updateBall: (x: number, y: number) => void
     setVelX: (x: number) => void;
     setVelY: (y: number) => void;
+    setPosX: (x: number) => void;
+    setPosY: (y: number) => void;
 };
 export const ballStore = create<BallMovement>((set) => ({
     ballPosition: {x: 400, y: 300},
@@ -43,6 +45,15 @@ export const ballStore = create<BallMovement>((set) => ({
     setVelY: (newY: number) => set((state) => ({
         velocity: {x: state.velocity.x, y: newY},
         ballPosition: state.ballPosition,
+    })),
+    setPosX: (newX: number) => set((state) => ({
+        
+        ballPosition: {x: newX, y: state.ballPosition.y},
+        velocity: state.velocity,
+    })),
+    setPosY: (newY: number) => set((state) => ({
+        ballPosition: {x: state.ballPosition.x, y: newY},
+        velocity: state.velocity,
     }))
 }));
 
@@ -101,4 +112,24 @@ export const socketStore = create<SocketStore>((set) => ({
         if (socket)
             socket?.disconnect();
     },
+}));
+
+interface GameResult {
+    hasEnded: boolean,
+    result: string,
+
+    GameEnds: (end: boolean) => void,
+    setResult: (res: string) => void,
+};
+
+export const GameResultStore = createStore<GameResult>((set) => ({
+    hasEnded: false,
+    result: '',
+
+    GameEnds: (end: boolean) =>  set(() => ({
+        hasEnded: end,
+    })),
+    setResult: (res: string) =>  set(() => ({
+        result: res,
+    })),
 }));

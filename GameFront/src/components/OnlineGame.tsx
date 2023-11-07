@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import { Stage, Layer, Image, Text, Rect } from "react-konva";
-import { playerStore, ballStore, scoreStore, socketStore } from "../utils/Stores";
+import { playerStore, ballStore, scoreStore, socketStore, GameResultStore } from "../utils/Stores";
 import { LoadingScreen } from "./Loading";
 
 interface Textures {
@@ -11,7 +11,7 @@ interface Textures {
 
 const WIDTH: number = 800;
 const HEIGHT: number = 600;
-const FRAME_RATE = 1000 / 60;
+// const FRAME_RATE = 1000 / 60;
 
 function OnlineGame() {
 	const textures: Textures = {
@@ -22,6 +22,7 @@ function OnlineGame() {
 	const {ballPosition, updateBall} = ballStore();
 	const {paddle1Score, paddle2Score, updatePaddle1Score, updatePaddle2Score} = scoreStore();
 	const {socket, connect, send, receive, disconnect} = socketStore();
+	const {hasEnded, result, setGameEnd, setResult} = GameResultStore();
 	const [isRunning, setRunning] = useState<boolean>(false);
 
 	textures.paddleTexture.src = 'assets/paddle.png';
@@ -85,6 +86,12 @@ function OnlineGame() {
 			receive(socket, (data) => {
 				movePaddle2(data);
 			}, 'rightPlayerUpdate');
+			//receives game result
+			receive(socket, (data) => {
+				setGameEnd(true);
+				setResult(data);
+				setRunning(false);
+			}, 'GameResult');
 			window.addEventListener('keydown', handleMovement);
 			let id: number = requestAnimationFrame(update);
 			return () => {
@@ -92,7 +99,8 @@ function OnlineGame() {
 				cancelAnimationFrame(id);
 			}
 		}
-	}, [paddle1, paddle2, ballPosition, paddle1Score, paddle2Score,socket, isRunning])
+	}, [paddle1, paddle2, ballPosition, paddle1Score, paddle2Score, socket, isRunning])
+
 	return (
 		<Stage width={WIDTH} height={HEIGHT}>
 			<Layer>
@@ -108,6 +116,11 @@ function OnlineGame() {
                 </Layer>) : (
                     <LoadingScreen/>
                 )
+			}
+			{hasEnded === true && 
+				<Layer>
+					<Text text={result} x={300} y={400} fill="white" fontSize={50}></Text>
+				</Layer>
 			}
             </> 
 		</Stage>

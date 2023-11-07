@@ -21,10 +21,18 @@ const resetBallPosition = { x: 400, y: 300 };
 const ballRadius = 25;
 const FRAME_RATE = 1000 / 60;
 
+export enum GAME_MODE {
+    MULTIPLAYER,
+    PRACTICE,
+    MULTIPLAYER_POWERUPS,
+    PRACTICE_POWERUPS
+};
 export class Game {
-    constructor(private client1: Socket, private client2: Socket, private server: Server, private eventEmitter: EventEmitter2, private ID: number) {
-        if (ID)
+    constructor(private client1: Socket, private client2: Socket | null, private server: Server, private eventEmitter: EventEmitter2, private ID: number, private mode: GAME_MODE) {
+        if (ID && ID !== 0)
             this.room = "room " + ID.toString();
+        else
+            this.room = "room " + client1?.id;
         this.ballPosition = { x: 400, y: 300 };
         this.ballVelocity = { x: 10, y: 10 };
         this.score = { left: 0, right: 0 };
@@ -33,15 +41,25 @@ export class Game {
         // this.server?.to(this.room).emit('startGame', true);
         this.client1?.on('disconnect', () => {
             this.eventEmitter.emit('delete.game', this.room);
+            this.clean();
             console.log('left paddle disconected');
         })
-        this.client2?.on('disconnect', () => {
-            this.eventEmitter.emit('delete.game', this.room);
-            console.log('right paddle disconected');
-        });
+        if (this.client2 != null) {
+            this.client2?.on('disconnect', () => {
+                this.eventEmitter.emit('delete.game', this.room);
+                this.clean();
+                console.log('right paddle disconected');
+            });
+        }
         this.paddleMovement();
     };
 
+    clean() {
+        this.client1 = null;
+        this.client2 = null;
+        // this.server = null;
+        this.eventEmitter = null;
+    }
     paddleMovement() {
         this.client1?.on('movePlayer', (direction) => {
             if (direction == 'UP' && this.leftPaddlePosition > 0)
@@ -50,13 +68,15 @@ export class Game {
                 this.leftPaddlePosition += 10;
             this.server.to(this.room).emit('leftPlayerUpdate', this.leftPaddlePosition);
         });
-        this.client2?.on('movePlayer', (direction) => {
-            if (direction == 'UP' && this.rightPaddlePosition > 0)
-                this.rightPaddlePosition -= 10;
-            else if (direction == 'DOWN' && this.rightPaddlePosition + paddleHeight < HEIGHT)
-                this.rightPaddlePosition += 10;
-            this.server.to(this.room).emit('rightPlayerUpdate', this.rightPaddlePosition);
-        });
+        if (this.mode === GAME_MODE.MULTIPLAYER) {
+            this.client2?.on('movePlayer', (direction) => {
+                if (direction == 'UP' && this.rightPaddlePosition > 0)
+                    this.rightPaddlePosition -= 10;
+                else if (direction == 'DOWN' && this.rightPaddlePosition + paddleHeight < HEIGHT)
+                    this.rightPaddlePosition += 10;
+                this.server.to(this.room).emit('rightPlayerUpdate', this.rightPaddlePosition);
+            });
+        }
     };
 
     gameLoop() {

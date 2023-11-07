@@ -8,7 +8,7 @@ import {
 import { WebSocketGateway } from '@nestjs/websockets';
 import { subscribe } from 'diagnostics_channel';
 import { Server, Socket } from 'socket.io';
-import { Game } from './Game';
+import { Game, GAME_MODE } from './Game';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
 @WebSocketGateway(3001,{ cors: {
@@ -52,17 +52,31 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 		}
 	};
 
+	//start multiplayer game
 	startGame(socket1: Socket, socket2: Socket, ID: number) {
-		const game = new Game(socket1, socket2, this.server, this.eventEmitter, ID);
+		const game = new Game(socket1, socket2, this.server, this.eventEmitter, ID, GAME_MODE.MULTIPLAYER);
 		this.games.set("room " + ID.toString(), game);
 		game.gameLoop();
 	};
+
+	//start practice game
+	@SubscribeMessage('startPractice')
+	startPractice(socket: Socket) {
+		console.log('wassuuuup')
+		const game = new Game(socket, null, this.server, this.eventEmitter, 0, GAME_MODE.PRACTICE);
+		socket.join("room " + socket.id);
+		this.games.set("room " + socket.id, game);
+		game.gameLoop();
+	}
 
 	@OnEvent('delete.game')
 	deleteGame(room: string) {
 		console.log('hello', room);
 		if (this.games.delete(room))
+		{
 			console.log('room is deleted');
+			this.server.to(room).emit('GameResult', 'Player lost connection');
+		}
 		else
 			console.log('room not found');
 	};
@@ -76,7 +90,7 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 			console.log('room not found');
 		this.server.to(room).emit('GameResult', 'Left Player Wins');
 	};
-	@OnEvent('left.won')
+	@OnEvent('right.won')
 	rightPlayerWon(room: string) {
 		console.log('right player won');
 		if (this.games.delete(room))

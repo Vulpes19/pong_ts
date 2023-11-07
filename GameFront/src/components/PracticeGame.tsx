@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import { Stage, Layer, Image, Text, Rect } from "react-konva";
-import { playerStore, ballStore, scoreStore } from "../utils/Stores";
+import { playerStore, ballStore, scoreStore, socketStore } from "../utils/Stores";
 
 interface Textures {
 	ballTexture: HTMLImageElement,
@@ -19,106 +19,90 @@ const resetBallPositionY = 300
 const ballRadius = 25;
 const FRAME_RATE = 1000 / 60;
 
-function OnlineGame() {
+function PracticeGame() {
 	const textures: Textures = {
 		ballTexture: new window.Image,
 		paddleTexture: new window.Image,
 	}
 	const {paddle1, paddle2, movePaddle1, movePaddle2} = playerStore();
-	const {ballPosition, velocity, updateBall, setVelX, setVelY} = ballStore();
+	const {ballPosition, updateBall} = ballStore();
 	const {paddle1Score, paddle2Score, updatePaddle1Score, updatePaddle2Score} = scoreStore();
+	const {socket, connect, send, receive, disconnect} = socketStore();
 	const [isRunning, setRunning] = useState<boolean>(false);
     const [count, setCount] = useState<number>(3);
 
 	textures.paddleTexture.src = 'assets/paddle.png';
 	textures.ballTexture.src = 'assets/ball.png';
+
+	useEffect( () => {
+		connect();
+	}, []);
 	
 	const handleMovement = (e: KeyboardEvent) => {
 		if (e.key === 'ArrowUp')
 		{
-            movePaddle1(paddle1.y - 10);
+			send(socket, 'UP', 'movePlayer');
 		}
 		if (e.key === 'ArrowDown')
 		{
-            movePaddle1(paddle1.y + 10);
+			send(socket, 'DOWN', 'movePlayer');
 		}
 	}
-	//countdown
+	// //countdown
 	useEffect( () => {
         if (isRunning === false)
         {
-                if (count === 0)
-                {
-                        setRunning(true);
-                        setCount(3);
-            return ;
-        }
-        const id = setInterval( () => {
+			if (count === 0)
+            {
+				setRunning(true);
+                setCount(3);
+				send(socket, '','startPractice');
+                return ;
+            }
+            const id = setInterval( () => {
                 setCount(count - 1);
             }, 1000);
-        return () => {
+            return () => {
                 clearInterval(id);
             }
         }
-	}, [isRunning, count])
-	
-			// //gameloop
+    }, [isRunning, count])
+        
+	//gameloop
 	useEffect( () => {
-        let isFrameUpdated = false;
-        const resetBall = () => {
-            console.log('pchakh')
-            updateBall(400, 300);
-        }
+		// receive(socket, (start) => {
+		// 	setRunning(start);
+		// }, 'startGame');
 		if (isRunning)
 		{
 			const update = () => {
-                if (isFrameUpdated)
-                    return ;
-                if (ballPosition.y < 0) {
-                    setVelY(5);
-                }
-                else if (ballPosition.y + ballRadius > HEIGHT) {
-                    setVelY(-5);
-                }
-                else if (ballPosition.x < 0) {
-                    setVelX(5);
-                    resetBall();
-                    updatePaddle2Score(paddle2Score + 1);
-                    // updateBall(resetBallPositionX, resetBallPositionY);
-                }
-                else if (ballPosition.x + ballRadius > WIDTH) {
-                    setVelX(-5);
-                    resetBall();
-                    updatePaddle1Score(paddle1Score + 1);
-                    // updateBall(resetBallPositionX, resetBallPositionY);
-                }
-                else if (ballPosition.y >= paddle1.y &&
-                    ballPosition.y <= paddle1.y + paddleHeight &&
-                    ballPosition.x < paddle1X + paddleWidth) {
-                    setVelX(5);
-                }
-                else if (ballPosition.y >= paddle2.y &&
-                    ballPosition.y <= paddle2.y + paddleHeight &&
-                    ballPosition.x + ballRadius >= paddle2X) {
-                    setVelX(-5);
-                }
-                isFrameUpdated = true;
-                updateBall(ballPosition.x + velocity.x, ballPosition.y + velocity.y);
+				receive(socket, (data) => {
+					updateBall(data.x, data.y);
+				}, 'ballUpdate');
 			}
-            let id: number;
-            const frame = () => {
-                update();
-                isFrameUpdated = false;
-                id = requestAnimationFrame(frame);
-            }
+			receive(socket, (data) => {
+				updatePaddle2Score(data);
+			}, 'rightScoreUpdate');
+			//receives l
+			receive(socket, (data) => {
+				updatePaddle1Score(data);
+			}, 'leftScoreUpdate');
+			//receives left player position
+			receive(socket, (data) => {
+				movePaddle1(data);
+			}, 'leftPlayerUpdate');
+			//receives right paddle position
+			receive(socket, (data) => {
+				movePaddle2(data);
+			}, 'rightPlayerUpdate');
 			window.addEventListener('keydown', handleMovement);
-			id = requestAnimationFrame(frame);
+			let id: number = requestAnimationFrame(update);
 			return () => {
 				window.removeEventListener('keydown', handleMovement);
 				cancelAnimationFrame(id);
 			}
 		}
-	}, [paddle1, paddle2, ballPosition, paddle1Score, paddle2Score, isRunning])
+	}, [paddle1, paddle2, ballPosition, paddle1Score, paddle2Score,socket, isRunning])
 	return (
             <>
             <Stage width={WIDTH} height={HEIGHT}>
@@ -146,4 +130,4 @@ function OnlineGame() {
 		);
 	}
 	
-export default OnlineGame;
+export default PracticeGame;
