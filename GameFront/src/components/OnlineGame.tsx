@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import { Stage, Layer, Image, Text, Rect } from "react-konva";
-import { playerStore, ballStore, scoreStore, socketStore, GameResultStore } from "../utils/Stores";
+import { playerStore, ballStore, scoreStore, socketStore, gameResultStore } from "../utils/Stores";
 import { LoadingScreen } from "./Loading";
 
 interface Textures {
@@ -22,7 +22,7 @@ function OnlineGame() {
 	const {ballPosition, updateBall} = ballStore();
 	const {paddle1Score, paddle2Score, updatePaddle1Score, updatePaddle2Score} = scoreStore();
 	const {socket, connect, send, receive, disconnect} = socketStore();
-	const {hasEnded, result, setGameEnd, setResult} = GameResultStore();
+	const {hasEnded, result, GameEnds, setResult} = gameResultStore();
 	const [isRunning, setRunning] = useState<boolean>(false);
 
 	textures.paddleTexture.src = 'assets/paddle.png';
@@ -88,9 +88,11 @@ function OnlineGame() {
 			}, 'rightPlayerUpdate');
 			//receives game result
 			receive(socket, (data) => {
-				setGameEnd(true);
+				console.log('yoo')
+				GameEnds(true);
 				setResult(data);
 				setRunning(false);
+				disconnect(socket);
 			}, 'GameResult');
 			window.addEventListener('keydown', handleMovement);
 			let id: number = requestAnimationFrame(update);
@@ -107,19 +109,20 @@ function OnlineGame() {
 				<Rect width={WIDTH} height={HEIGHT} fill="black"></Rect>
 			</Layer>
             <>
-			{isRunning ? (
+			{ isRunning === true &&
                 <Layer>
                     <Text text={paddle1Score.toString() + ' : ' + paddle2Score.toString()} x={360} y={20} fill="white" fontSize={50}></Text>
                     <Image image={textures.paddleTexture} x={paddle1.x} y={paddle1.y} />
                     <Image image={textures.paddleTexture} x={paddle2.x} y={paddle2.y} />
                     <Image image={textures.ballTexture} x={ballPosition.x} y={ballPosition.y} />
-                </Layer>) : (
-                    <LoadingScreen/>
-                )
+				</Layer>
 			}
+
+			{hasEnded === false && isRunning === false && <LoadingScreen/>}
+				
 			{hasEnded === true && 
 				<Layer>
-					<Text text={result} x={300} y={400} fill="white" fontSize={50}></Text>
+					<Text text={result} x={100} y={400} fill="white" fontSize={50}></Text>
 				</Layer>
 			}
             </> 

@@ -114,7 +114,7 @@ export const socketStore = create<SocketStore>((set) => ({
     },
 }));
 
-interface GameResult {
+interface GameResultStore {
     hasEnded: boolean,
     result: string,
 
@@ -122,7 +122,7 @@ interface GameResult {
     setResult: (res: string) => void,
 };
 
-export const GameResultStore = createStore<GameResult>((set) => ({
+export const gameResultStore = create<GameResultStore>((set) => ({
     hasEnded: false,
     result: '',
 

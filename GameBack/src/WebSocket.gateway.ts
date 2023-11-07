@@ -71,7 +71,6 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 
 	@OnEvent('delete.game')
 	deleteGame(room: string) {
-		console.log('hello', room);
 		if (this.games.delete(room))
 		{
 			console.log('room is deleted');

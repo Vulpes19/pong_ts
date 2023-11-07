@@ -34,10 +34,11 @@ export class Game {
         else
             this.room = "room " + client1?.id;
         this.ballPosition = { x: 400, y: 300 };
-        this.ballVelocity = { x: 10, y: 10 };
+        this.ballVelocity = { x: 5, y: 5 };
         this.score = { left: 0, right: 0 };
         this.leftPaddlePosition = 250;
         this.rightPaddlePosition = 250;
+        // this.serverRef = new WeakRef(server);
         // this.server?.to(this.room).emit('startGame', true);
         this.client1?.on('disconnect', () => {
             this.eventEmitter.emit('delete.game', this.room);
@@ -57,8 +58,9 @@ export class Game {
     clean() {
         this.client1 = null;
         this.client2 = null;
+        clearInterval(this.gameLoopInterval);
         // this.server = null;
-        this.eventEmitter = null;
+        // this.eventEmitter = null;
     }
     paddleMovement() {
         this.client1?.on('movePlayer', (direction) => {
@@ -80,7 +82,7 @@ export class Game {
     };
 
     gameLoop() {
-        setInterval(this.updateBall.bind(this), FRAME_RATE);
+        this.gameLoopInterval = setInterval(this.updateBall.bind(this), FRAME_RATE);
     };
 
     updateBall() {
@@ -113,18 +115,43 @@ export class Game {
             )) {
             this.ballVelocity.x = -this.ballVelocity.x;
         }
+        else if (this.mode === GAME_MODE.PRACTICE || this.mode === GAME_MODE.PRACTICE_POWERUPS)
+        {
+            this.AIpaddle();
+        }
         this.ballPosition.x = this.ballPosition.x + this.ballVelocity.x;
         this.ballPosition.y = this.ballPosition.y + this.ballVelocity.y;
         this.endGame(); 
         this.server.to(this.room).emit('ballUpdate', this.ballPosition);
     };
 
+    getRandomNumb(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return (Math.floor(Math.random() * (max - min) + min));
+    }
+    AIpaddle() {
+        let ballY = this.ballPosition.y;
+        if (ballY > this.rightPaddlePosition && this.rightPaddlePosition + paddleHeight < HEIGHT )
+            this.rightPaddlePosition += 10;
+        else if (ballY < this.rightPaddlePosition && this.rightPaddlePosition > 0)
+            this.rightPaddlePosition -= 10;
+        this.server.to(this.room).emit('rightPlayerUpdate', this.rightPaddlePosition);
+    };
+
     endGame() {
         if (this.score.left >= 10)
+        {
             this.eventEmitter.emit('left.won', this.room);
+            this.clean();
+        }    
         else if (this.score.right >= 10)
+        {
             this.eventEmitter.emit('right.won', this.room);
-    }
+            this.clean();
+        }
+    };
+
     private room: string;
     private acceleration: number = 1;
     private leftPaddlePosition: number;
@@ -132,4 +159,6 @@ export class Game {
     private ballPosition: Vector;
     private ballVelocity: Vector;
     private score: ScoreBoard;
+    private gameLoopInterval;
+    // private serverRef:WeakRef<Server>;
 };
