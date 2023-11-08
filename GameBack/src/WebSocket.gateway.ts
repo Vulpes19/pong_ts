@@ -27,34 +27,64 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 
 	handleConnection(client: Socket) {
 		console.log('client: ', client.id, ' has connected');
-		this.queue.push(client);
+		client.emit('status', 'connected');
 	}
-
+	
 	handleDisconnect(client: Socket) {
 		console.log('client: ', client.id, ' has disconnected');
-		const index = this.queue?.indexOf(client);
-		if (index !== -1)
-			this.queue.splice(index, 1);
+		let index = this.queueDefault?.indexOf(client);
+		if (index !== -1) {
+			this.queueDefault.splice(index, 1);
+			return ;
+		}
+		index = this.queuePowerUps?.indexOf(client);
+		if (index !== -1) {
+			this.queuePowerUps.splice(index, 1);
+			return ;
+		}
+	}
+
+	@SubscribeMessage('gameMode')
+	getGameMode(client: Socket, gameMode: string) {
+		console.log('message received')
+		if (gameMode === 'defaultGame')
+			this.queueDefault.push(client);
+		else if (gameMode == 'powerUpGame')
+			this.queuePowerUps.push(client);
 	}
 
 	matchmaking() {
-		// console.log('Im in matchmaking', this.queue?.length);
-		if (this.queue?.length >= 2)
+		// console.log('Im in matchmaking', this.queueDefault?.length);
+		let gameMode: GAME_MODE = GAME_MODE.MULTIPLAYER;
+		let queue: Socket[] | null = null;
+		if (this.queueDefault?.length >= 2)
+		{
+			queue = this.queueDefault;
+			console.log('DEFAULT GAME MODE')
+		}
+		if (this.queuePowerUps?.length >= 2)
+		{
+			queue = this.queuePowerUps;
+			gameMode = GAME_MODE.MULTIPLAYER_POWERUPS;
+			console.log('POWER UP GAME MODE')
+		}
+		if (queue)
 		{
 			console.log('found a match !');
-			const socket1: Socket = this.queue.pop();
-			const socket2: Socket = this.queue.pop();
+			const socket1: Socket = queue.pop();
+			const socket2: Socket = queue.pop();
+			console.log('setting up the game...');
 			const roomNbr: number = this.roomsNbr + 1;
 			socket1.join("room " + roomNbr.toString());
 			socket2.join("room " + roomNbr.toString());
 			this.server?.to("room " + roomNbr.toString()).emit('startGame', true);
-			this.startGame(socket1, socket2, roomNbr);
+			this.startGame(socket1, socket2, roomNbr, gameMode);
 		}
 	};
 
 	//start multiplayer game
-	startGame(socket1: Socket, socket2: Socket, ID: number) {
-		const game = new Game(socket1, socket2, this.server, this.eventEmitter, ID, GAME_MODE.MULTIPLAYER);
+	startGame(socket1: Socket, socket2: Socket, ID: number, gameMode: GAME_MODE) {
+		const game = new Game(socket1, socket2, this.server, this.eventEmitter, ID, gameMode);
 		this.games.set("room " + ID.toString(), game);
 		game.gameLoop();
 	};
@@ -62,7 +92,6 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 	//start practice game
 	@SubscribeMessage('startPractice')
 	startPractice(socket: Socket) {
-		console.log('wassuuuup')
 		const game = new Game(socket, null, this.server, this.eventEmitter, 0, GAME_MODE.PRACTICE);
 		socket.join("room " + socket.id);
 		this.games.set("room " + socket.id, game);
@@ -98,7 +127,8 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 			console.log('room not found');
 		this.server.to(room).emit('GameResult', 'Right Player Wins');
 	};
-	private queue: Socket[] = [];
+	private queueDefault: Socket[] = [];
+	private queuePowerUps: Socket[] = [];
 	private games = new Map<string, Game>();
 	private roomsNbr: number;
 };

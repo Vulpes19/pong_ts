@@ -1,4 +1,4 @@
-import {create, createStore} from 'zustand'
+import {create} from 'zustand'
 import {io, Socket} from 'socket.io-client';
 
 interface Vector {
@@ -25,10 +25,6 @@ interface BallMovement {
     ballPosition: Vector,
     velocity: Vector,
     updateBall: (x: number, y: number) => void
-    setVelX: (x: number) => void;
-    setVelY: (y: number) => void;
-    setPosX: (x: number) => void;
-    setPosY: (y: number) => void;
 };
 export const ballStore = create<BallMovement>((set) => ({
     ballPosition: {x: 400, y: 300},
@@ -36,24 +32,6 @@ export const ballStore = create<BallMovement>((set) => ({
 
     updateBall: (newX: number, newY: number) => set(({
         ballPosition: {x: newX, y: newY},
-    })),
-
-    setVelX: (newX: number) => set((state) => ({
-        velocity: {x: newX, y: state.velocity.y},
-        ballPosition: state.ballPosition,
-    })),
-    setVelY: (newY: number) => set((state) => ({
-        velocity: {x: state.velocity.x, y: newY},
-        ballPosition: state.ballPosition,
-    })),
-    setPosX: (newX: number) => set((state) => ({
-        
-        ballPosition: {x: newX, y: state.ballPosition.y},
-        velocity: state.velocity,
-    })),
-    setPosY: (newY: number) => set((state) => ({
-        ballPosition: {x: state.ballPosition.x, y: newY},
-        velocity: state.velocity,
     }))
 }));
 

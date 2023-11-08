@@ -1,5 +1,6 @@
 import { Socket, Server } from "socket.io";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import { last } from "rxjs";
 
 interface Vector {
     x: number,
@@ -84,22 +85,23 @@ export class Game {
     gameLoop() {
         this.gameLoopInterval = setInterval(this.updateBall.bind(this), FRAME_RATE);
     };
-
+    
     updateBall() {
+        this.currentTime = performance.now();
+        let deltaTime = this.lastTime - this.currentTime;
         if (this.ballPosition.y < 0 ||
-            this.ballPosition.y + ballRadius > HEIGHT) {
+            this.ballPosition.y + ballRadius >= HEIGHT) {
+                this.ballVelocity.y -= 1;
                 this.ballVelocity.y = -this.ballVelocity.y;
         }
-        else if (this.ballPosition.x < 0) {
-            this.acceleration = 1;
+        else if (this.ballPosition.x + ballRadius < 0) {
             this.ballVelocity.x = -this.ballVelocity.x;
             this.score.right += 1;
             this.ballPosition.x = resetBallPosition.x;
             this.ballPosition.y = resetBallPosition.y;
             this.server.to(this.room).emit('rightScoreUpdate', this.score.right);
         }
-        else if (this.ballPosition.x + ballRadius > WIDTH) {
-            this.acceleration = 1;
+        else if (this.ballPosition.x > WIDTH) {
             this.ballVelocity.x = -this.ballVelocity.x;
             this.score.left += 1;
             this.ballPosition.x = resetBallPosition.x;
@@ -113,6 +115,7 @@ export class Game {
                 this.ballPosition.y <= this.rightPaddlePosition + paddleHeight &&
                 this.ballPosition.x + ballRadius >= paddle2X 
             )) {
+            this.ballVelocity.x += 1;
             this.ballVelocity.x = -this.ballVelocity.x;
         }
         else if (this.mode === GAME_MODE.PRACTICE || this.mode === GAME_MODE.PRACTICE_POWERUPS)
@@ -123,13 +126,9 @@ export class Game {
         this.ballPosition.y = this.ballPosition.y + this.ballVelocity.y;
         this.endGame(); 
         this.server.to(this.room).emit('ballUpdate', this.ballPosition);
+        this.lastTime = this.currentTime;
     };
-
-    getRandomNumb(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return (Math.floor(Math.random() * (max - min) + min));
-    }
+    
     AIpaddle() {
         let ballY = this.ballPosition.y;
         if (ballY > this.rightPaddlePosition && this.rightPaddlePosition + paddleHeight < HEIGHT )
@@ -160,5 +159,7 @@ export class Game {
     private ballVelocity: Vector;
     private score: ScoreBoard;
     private gameLoopInterval;
+    private currentTime: number;
+    private lastTime: number;
     // private serverRef:WeakRef<Server>;
 };

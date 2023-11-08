@@ -1,7 +1,5 @@
-import React from "react";
 import OnlineGame from "./OnlineGame";
-import OfflineGame from "./PracticeGame";
-import {useState} from "react"
+import PracticeGame from "./PracticeGame";
 
 
 interface MenuProps {
@@ -11,25 +9,31 @@ interface MenuProps {
 
 function Menu({game, selectGame}: MenuProps) {
     const handleOfflineClick = () => {
-        selectGame('Offline');
+        selectGame('Practice');
     };
     
     const handleOnlineClick = () => {
         selectGame('Online');
     };
+
+    const handleOnlinePowerUpClick = () => {
+        selectGame('OnlinePowerUp');
+    };
     function Buttons() {
         return (
             <div>
-                <button onClick={handleOfflineClick}>Offline</button>
-                <button onClick={handleOnlineClick}>Online</button>
+                <button onClick={handleOfflineClick}>Practice</button>
+                <button onClick={handleOnlineClick}>Multiplayer</button>
+                <button onClick={handleOnlinePowerUpClick}>Multiplayer "PowerUps"</button>
             </div>
         );
     };
     return (
         <div>
             {game === '' && <Buttons/>}
-            {game === 'Offline' && <OfflineGame/>}
-            {game === 'Online' && <OnlineGame/>}
+            {game === 'Practice' && <PracticeGame/>}
+            {game === 'Online' && <OnlineGame powerUpGame={false}/>}
+            {game === 'OnlinePowerUp' && <OnlineGame powerUpGame={true}/>}
         </div>
     )
 };
