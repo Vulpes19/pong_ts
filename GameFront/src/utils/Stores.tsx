@@ -111,3 +111,29 @@ export const gameResultStore = create<GameResultStore>((set) => ({
         result: res,
     })),
 }));
+
+interface PowerUpsStore {
+    increaseSize: boolean,
+    decreaseSize: boolean,
+    speed: boolean,
+
+    setIncreaseSize: (val: boolean) => void,
+    setDecreaseSize: (val: boolean) => void,
+    setSpeed: (val: boolean) => void,
+}
+
+export const powerUpsStore = create<PowerUpsStore>((set) => ({
+    increaseSize: true,
+    decreaseSize: true,
+    speed: true,
+
+    setIncreaseSize: (val: boolean) => set(() => ({
+        increaseSize: val,
+    })),
+    setDecreaseSize: (val: boolean) => set(() => ({
+        decreaseSize: val,
+    })),
+    setSpeed: (val: boolean) => set(() => ({
+        speed: val,
+    })),
+}))

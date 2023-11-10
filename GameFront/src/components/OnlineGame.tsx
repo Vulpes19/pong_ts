@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { useState } from "react";
 import { Stage, Layer, Image, Text, Rect } from "react-konva";
-import { playerStore, ballStore, scoreStore, socketStore, gameResultStore } from "../utils/Stores";
+import { playerStore, ballStore, scoreStore, socketStore, gameResultStore, powerUpsStore } from "../utils/Stores";
 import { LoadingScreen } from "./Loading";
 
 interface Textures {
 	ballTexture: HTMLImageElement,
-	paddleTexture: HTMLImageElement,
+	paddle1Texture: HTMLImageElement,
+	paddle2Texture: HTMLImageElement
 };
 
 interface PowerUpsTextures {
@@ -26,7 +27,8 @@ function OnlineGame({powerUpGame}: prop) {
 	console.log('the prop is', powerUpGame);
 	const textures: Textures = {
 		ballTexture: new window.Image,
-		paddleTexture: new window.Image,
+		paddle1Texture: new window.Image,
+		paddle2Texture: new window.Image
 	};
 	let powerUpsTextures: PowerUpsTextures | undefined;
 	const {paddle1, paddle2, movePaddle1, movePaddle2} = playerStore();
@@ -34,10 +36,12 @@ function OnlineGame({powerUpGame}: prop) {
 	const {paddle1Score, paddle2Score, updatePaddle1Score, updatePaddle2Score} = scoreStore();
 	const {socket, connect, send, receive, disconnect} = socketStore();
 	const {hasEnded, result, GameEnds, setResult} = gameResultStore();
+	const {increaseSize, decreaseSize, speed, setIncreaseSize, setDecreaseSize, setSpeed} = powerUpsStore();
 	const [isRunning, setRunning] = useState<boolean>(false);
 	let intervalId: NodeJS.Timeout;
 
-	textures.paddleTexture.src = 'assets/paddle.png';
+	textures.paddle1Texture.src = 'assets/paddle.png';
+	textures.paddle2Texture.src = 'assets/paddle.png';
 	textures.ballTexture.src = 'assets/ball.png';
 	
 	function loadPowerUpTextures() {
@@ -49,7 +53,6 @@ function OnlineGame({powerUpGame}: prop) {
 		powerUpsTextures.increaseSizePower.src = 'assets/Increase_size_power_up.png';
 		powerUpsTextures.decreaseSizePower.src = 'assets/decrease_size_power_up.png';
 		powerUpsTextures.speedPower.src = 'assets/speed_power_up.png';
-		console.log('images are loaded')
 	};
 	if (powerUpGame)
 		loadPowerUpTextures();
@@ -57,14 +60,9 @@ function OnlineGame({powerUpGame}: prop) {
 	function sendGameMode(){
 		//console.log('I sent a message');
 		if (powerUpGame == true)
-		{
-			console.log('wazuuup')
 			send(socket, 'powerUpGame', 'gameMode');
-		}
 		else
-		{
 			send(socket, 'defaultGame','gameMode');
-		}
 	}
 
 	useEffect( () => {
@@ -73,13 +71,9 @@ function OnlineGame({powerUpGame}: prop) {
 	
 	const handleMovement = (e: KeyboardEvent) => {
 		if (e.key === 'ArrowUp')
-		{
 			send(socket, 'UP', 'movePlayer');
-		}
 		if (e.key === 'ArrowDown')
-		{
 			send(socket, 'DOWN', 'movePlayer');
-		}
 	}
 	// //countdown
 	// useEffect( () => {
@@ -108,9 +102,7 @@ function OnlineGame({powerUpGame}: prop) {
 		}, 'startGame');
 		receive(socket, (status) => {
 			if (status == 'connected')
-			{
 				sendGameMode();
-			}
 		}, 'status');
 		if (isRunning)
 		{
@@ -134,9 +126,26 @@ function OnlineGame({powerUpGame}: prop) {
 			receive(socket, (data) => {
 				movePaddle2(data);
 			}, 'rightPlayerUpdate');
+
+			receive(socket, (data) => {
+				if (data == 'leftPaddle')
+					textures.paddle1Texture.src = 'assets/big_paddle.png';
+				else
+					textures.paddle2Texture.src = 'assets/big_paddle.png';
+				setIncreaseSize(false);
+			}, 'increaseSize');
+			receive(socket, (data) => {
+				if (data == 'leftPaddle')
+					textures.paddle1Texture.src = 'assets/small_paddle.png';
+				else
+					textures.paddle2Texture.src = 'assets/big_paddle.png';
+				setDecreaseSize(false);
+			}, 'decreaseSize');
+			receive(socket, () => {
+				setSpeed(false);
+			}, 'speed');
 			//receives game result
 			receive(socket, (data) => {
-				console.log('yoo')
 				GameEnds(true);
 				setResult(data);
 				setRunning(false);
@@ -161,14 +170,14 @@ function OnlineGame({powerUpGame}: prop) {
 			{ isRunning === true &&
                 <Layer>
                     <Text text={paddle1Score.toString() + ' : ' + paddle2Score.toString()} x={360} y={20} fill="white" fontSize={50}></Text>
-                    <Image image={textures.paddleTexture} x={paddle1.x} y={paddle1.y} />
-                    <Image image={textures.paddleTexture} x={paddle2.x} y={paddle2.y} />
+                    <Image image={textures.paddle1Texture} x={paddle1.x} y={paddle1.y} />
+                    <Image image={textures.paddle2Texture} x={paddle2.x} y={paddle2.y} />
                     <Image image={textures.ballTexture} x={ballPosition.x} y={ballPosition.y} />
 					{powerUpGame === true && powerUpsTextures &&
 					<> 
-						<Image image={powerUpsTextures.increaseSizePower} x={390} y={150} />
-						<Image image={powerUpsTextures.decreaseSizePower} x={390} y={290} />
-						<Image image={powerUpsTextures.speedPower} x={390} y={450} />
+						{increaseSize && <Image image={powerUpsTextures.increaseSizePower} x={390} y={150} />}
+						{decreaseSize && <Image image={powerUpsTextures.decreaseSizePower} x={390} y={290} />}
+						{speed && <Image image={powerUpsTextures.speedPower} x={390} y={450} />}
 					</>}
 				</Layer>
 			}

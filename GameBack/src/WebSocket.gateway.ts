@@ -91,8 +91,14 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 
 	//start practice game
 	@SubscribeMessage('startPractice')
-	startPractice(socket: Socket) {
-		const game = new Game(socket, null, this.server, this.eventEmitter, 0, GAME_MODE.PRACTICE);
+	startPractice(socket: Socket, gameMode: string) {
+		let mode: GAME_MODE = GAME_MODE.PRACTICE;
+		if (gameMode === 'powerUpGame')
+		{
+			console.log('power uuup')
+			mode = GAME_MODE.PRACTICE_POWERUPS;
+		}
+		const game = new Game(socket, null, this.server, this.eventEmitter, 0, mode);
 		socket.join("room " + socket.id);
 		this.games.set("room " + socket.id, game);
 		game.gameLoop();

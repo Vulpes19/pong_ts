@@ -12,6 +12,10 @@ function Menu({game, selectGame}: MenuProps) {
         selectGame('Practice');
     };
     
+    const handleOfflinePowerUpClick = () => {
+        selectGame('PracticePowerUp');
+    };
+    
     const handleOnlineClick = () => {
         selectGame('Online');
     };
@@ -23,6 +27,7 @@ function Menu({game, selectGame}: MenuProps) {
         return (
             <div>
                 <button onClick={handleOfflineClick}>Practice</button>
+                <button onClick={handleOfflinePowerUpClick}>Practice "PowerUps"</button>
                 <button onClick={handleOnlineClick}>Multiplayer</button>
                 <button onClick={handleOnlinePowerUpClick}>Multiplayer "PowerUps"</button>
             </div>
@@ -31,7 +36,8 @@ function Menu({game, selectGame}: MenuProps) {
     return (
         <div>
             {game === '' && <Buttons/>}
-            {game === 'Practice' && <PracticeGame/>}
+            {game === 'Practice' && <PracticeGame powerUpGame={false}/>}
+            {game === 'PracticePowerUp' && <PracticeGame powerUpGame={true}/>}
             {game === 'Online' && <OnlineGame powerUpGame={false}/>}
             {game === 'OnlinePowerUp' && <OnlineGame powerUpGame={true}/>}
         </div>
