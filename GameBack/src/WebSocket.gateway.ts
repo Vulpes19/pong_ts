@@ -6,7 +6,6 @@ import {
 } from '@nestjs/websockets';
 
 import { WebSocketGateway } from '@nestjs/websockets';
-import { subscribe } from 'diagnostics_channel';
 import { Server, Socket } from 'socket.io';
 import { Game, GAME_MODE } from './Game';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
@@ -110,6 +109,7 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 		{
 			console.log('room is deleted');
 			this.server.to(room).emit('GameResult', 'Player lost connection');
+			this.roomsNbr -= 1;
 		}
 		else
 			console.log('room not found');
@@ -133,8 +133,9 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 			console.log('room not found');
 		this.server.to(room).emit('GameResult', 'Right Player Wins');
 	};
-	private queueDefault: Socket[] = [];
-	private queuePowerUps: Socket[] = [];
-	private games = new Map<string, Game>();
-	private roomsNbr: number;
+
+	private queueDefault: Socket[] = [];  //queue for the default game mode
+	private queuePowerUps: Socket[] = []; //queue for the power ups game mode
+	private games = new Map<string, Game>(); //map of Game objects
+	private roomsNbr: number; //rooms counter
 };

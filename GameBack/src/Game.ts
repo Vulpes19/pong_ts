@@ -1,6 +1,8 @@
 import { Socket, Server } from "socket.io";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { last } from "rxjs";
+import { listeners } from "process";
+import { EventEmitter } from "stream";
 
 interface Vector {
 	x: number,
@@ -195,7 +197,6 @@ export class Game {
 	};
 
 	private room: string;
-	private acceleration: number = 1;
 	private leftPaddlePosition: number;
 	private rightPaddlePosition: number;
 	private ballPosition: Vector;
@@ -206,7 +207,4 @@ export class Game {
 	private isPaddleSizeSmall: boolean = false;
 	private isBallSpedUp: boolean = false;
 	private finalPaddle: PADDLE;
-	// private currentTime: number;
-	// private lastTime: number;
-	// private serverRef:WeakRef<Server>;
 };
