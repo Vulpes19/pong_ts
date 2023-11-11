@@ -81,6 +81,7 @@ function MultiplayerGame({ powerUpGame }: prop) {
     // }, []);
 
 	useEffect(() => {
+		console.log(isRunning)
 		if (isRunning) {
 			// receives ball position
 			receive("ballUpdate");
@@ -100,7 +101,7 @@ function MultiplayerGame({ powerUpGame }: prop) {
 			receive("speed");
 			receive("startGame");
             //receives game result
-            // receive("GameResult");
+            receive("GameResult");
 			window.addEventListener("keydown", handleMovement);
 			return () => {
 				window.removeEventListener("keydown", handleMovement);

@@ -164,10 +164,13 @@ export const socketStore = create<SocketStore>((set, get) => ({
                     // socket.on(type, () => void socketStore.getState().setRunning(true));
                     break;
                 case 'GameResult':
-                    gameResultStore.getState().GameEnds(true);
-                    socketStore.getState().setRunning(false);
-                    socket.on(type, (data) => void gameResultStore.getState().setResult(data));
-                    socketStore.getState().disconnect();
+                    socket.on(type, (data) => {
+                        // console.log('HANI HNA')
+                        gameResultStore.getState().GameEnds(true);
+                        socketStore.getState().setRunning(false);
+                        gameResultStore.getState().setResult(data);
+                        socketStore.getState().disconnect();
+                    });
                     break;
                 case 'startGame':
                     socket.on(type, (data) => void socketStore.getState().setRunning(data));

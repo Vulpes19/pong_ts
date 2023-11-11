@@ -68,6 +68,8 @@ class Game {
     }
     ;
     clean() {
+        this.client1.removeAllListeners();
+        this.client2.removeAllListeners();
         this.client1 = null;
         this.client2 = null;
         clearInterval(this.gameLoopInterval);

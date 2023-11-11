@@ -80,6 +80,7 @@ matchmaking() {
 			const socket2: Socket = queue.pop();
 			console.log('setting up the game...');
 			const roomNbr: number = this.roomsNbr + 1;
+			console.log('rooms number', roomNbr)
 			socket1.join("room " + roomNbr.toString());
 			socket2.join("room " + roomNbr.toString());
 			this.server?.to("room " + roomNbr.toString()).emit('startGame', true);
@@ -91,6 +92,7 @@ matchmaking() {
 	//start multiplayer game
 	startGame(socket1: Socket, socket2: Socket, ID: number, gameMode: GAME_MODE) {
 		const game = new Game(socket1, socket2, this.server, this.eventEmitter, ID, gameMode);
+		console.log('game is allocated')
 		this.games.set("room " + ID.toString(), game);
 		game.gameLoop();
 	};
@@ -116,7 +118,7 @@ matchmaking() {
 		{
 			console.log('room is deleted');
 			this.server.to(room).emit('GameResult', 'Player lost connection');
-			this.roomsNbr -= 1;
+			// this.roomsNbr -= 1;
 		}
 		else
 			console.log('room not found');

@@ -66,6 +66,7 @@ let WebSocketGatewayC = class WebSocketGatewayC {
             const socket2 = queue.pop();
             console.log('setting up the game...');
             const roomNbr = this.roomsNbr + 1;
+            console.log('rooms number', roomNbr);
             socket1.join("room " + roomNbr.toString());
             socket2.join("room " + roomNbr.toString());
             this.server?.to("room " + roomNbr.toString()).emit('startGame', true);
@@ -75,6 +76,7 @@ let WebSocketGatewayC = class WebSocketGatewayC {
     ;
     startGame(socket1, socket2, ID, gameMode) {
         const game = new Game_1.Game(socket1, socket2, this.server, this.eventEmitter, ID, gameMode);
+        console.log('game is allocated');
         this.games.set("room " + ID.toString(), game);
         game.gameLoop();
     }
@@ -94,7 +96,6 @@ let WebSocketGatewayC = class WebSocketGatewayC {
         if (this.games.delete(room)) {
             console.log('room is deleted');
             this.server.to(room).emit('GameResult', 'Player lost connection');
-            this.roomsNbr -= 1;
         }
         else
             console.log('room not found');
