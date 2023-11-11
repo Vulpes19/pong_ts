@@ -111,25 +111,31 @@ export const powerUpsStore = create<PowerUpsStore>((set) => ({
 
 interface SocketStore {
     socket: Socket | null;
-    connect: () => void;
+    isRunning: boolean;
+
+    connect: (onConnect: Function) => void;
     send: (msg: string, type: string) => void;
     receive: (type: string) => void;
-    disconnect: (socket: Socket | null) => void;
+    setRunning: (type: boolean) => void;
+    disconnect: () => void;
 }
 
 export const socketStore = create<SocketStore>((set, get) => ({
     socket: null,
+    isRunning: false,
 
-    connect: () => {
+    connect: (onConnect: Function) => {
         const socket = io("ws://localhost:3001", { transports: ["websocket"], autoConnect: false });
         socket.on("connect", () => {
             set({ socket });
+            onConnect();
         });
         socket.connect();
     },
     send: (msg: string, type: string) => {
         const socket = get().socket;
         if (socket) {
+            console.log('msg sent')
             socket.emit(type, msg);
         }
     },
@@ -152,12 +158,30 @@ export const socketStore = create<SocketStore>((set, get) => ({
                 case 'rightPlayerUpdate':
                     socket.on(type, (data) => void playerStore.getState().movePaddle2(data));
                     break;
+                case 'status':
+                    console.log('received status')
+                    // socketStore.getState().setRunning(true);
+                    // socket.on(type, () => void socketStore.getState().setRunning(true));
+                    break;
+                case 'GameResult':
+                    gameResultStore.getState().GameEnds(true);
+                    socketStore.getState().setRunning(false);
+                    socket.on(type, (data) => void gameResultStore.getState().setResult(data));
+                    socketStore.getState().disconnect();
+                    break;
+                case 'startGame':
+                    socket.on(type, (data) => void socketStore.getState().setRunning(data));
+                    console.log('game started')
+                    break;
                 default:
                     break;
             }
             
         }
     },
+    setRunning: (type: boolean) => set(() => ({
+        isRunning: type
+    })),
     disconnect: () => {
         const socket = get().socket;
         if (socket) socket?.disconnect();

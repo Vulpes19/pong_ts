@@ -1,5 +1,6 @@
-import OnlineGame from "./OnlineGame";
+import MultiplayerGame from "./MultiplayerGame";
 import PracticeGame from "./PracticeGame";
+import {socketStore} from "../utils/Stores"
 
 
 interface MenuProps {
@@ -16,20 +17,20 @@ function Menu({game, selectGame}: MenuProps) {
         selectGame('PracticePowerUp');
     };
     
-    const handleOnlineClick = () => {
-        selectGame('Online');
+    const handleMultiplayerClick = () => {
+        selectGame('Multiplayer');
     };
 
-    const handleOnlinePowerUpClick = () => {
-        selectGame('OnlinePowerUp');
+    const handleMultiplayerPowerUpClick = () => {
+        selectGame('MultiplayerPowerUp');
     };
     function Buttons() {
         return (
             <div>
                 <button onClick={handleOfflineClick}>Practice</button>
                 <button onClick={handleOfflinePowerUpClick}>Practice "PowerUps"</button>
-                <button onClick={handleOnlineClick}>Multiplayer</button>
-                <button onClick={handleOnlinePowerUpClick}>Multiplayer "PowerUps"</button>
+                <button onClick={handleMultiplayerClick}>Multiplayer</button>
+                <button onClick={handleMultiplayerPowerUpClick}>Multiplayer "PowerUps"</button>
             </div>
         );
     };
@@ -38,8 +39,8 @@ function Menu({game, selectGame}: MenuProps) {
             {game === '' && <Buttons/>}
             {game === 'Practice' && <PracticeGame powerUpGame={false}/>}
             {game === 'PracticePowerUp' && <PracticeGame powerUpGame={true}/>}
-            {game === 'Online' && <OnlineGame powerUpGame={false}/>}
-            {game === 'OnlinePowerUp' && <OnlineGame powerUpGame={true}/>}
+            {game === 'Multiplayer' && <MultiplayerGame powerUpGame={false}/>}
+            {game === 'MultiplayerPowerUp' && <MultiplayerGame powerUpGame={true}/>}
         </div>
     )
 };

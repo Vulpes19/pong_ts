@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useState } from "react";
 import { Stage, Layer, Image, Text, Rect } from "react-konva";
-import { playerStore, ballStore, scoreStore, socketStore, powerUpsStore } from "../utils/Stores";
+import { playerStore, ballStore, scoreStore, socketStore, powerUpsStore, gameResultStore } from "../utils/Stores";
+import { LoadingScreen } from "./Loading";
 
 interface PowerUpsTextures {
 	increaseSizePower: HTMLImageElement;
@@ -21,7 +22,7 @@ interface prop {
 	powerUpGame: boolean;
 }
 
-function PracticeGame({ powerUpGame }: prop) {
+function MultiplayerGame({ powerUpGame }: prop) {
 	const textures: Textures = useMemo(
 		() => ({
 			ballTexture: new window.Image(),
@@ -32,9 +33,10 @@ function PracticeGame({ powerUpGame }: prop) {
 	);
 	const [gameMode, setGameMode] = useState<string>("defaultGame");
 	const [powerUpsTextures, setPowerUpsTextures] = useState<PowerUpsTextures | undefined>(undefined);
-	const { connect, send, receive } = socketStore();
+	const { isRunning, connect, send, receive } = socketStore();
+	const {hasEnded, result, GameEnds, setResult} = gameResultStore();
 
-	const [isRunning, setRunning] = useState<boolean>(false);
+	// const [isRunning, setRunning] = useState<boolean>(false);
 	const [count, setCount] = useState<number>(3);
 
 	useEffect(() => {
@@ -60,10 +62,13 @@ function PracticeGame({ powerUpGame }: prop) {
 		textures.paddle1Texture.src = "assets/paddle.png";
 		textures.paddle2Texture.src = "assets/paddle.png";
 		textures.ballTexture.src = "assets/ball.png";
-
-		connect();
+		connect( () => {
+			receive("startGame");
+			send(gameMode, "gameMode");
+		});
+		console.log(isRunning);
 	}, []);
-
+	
 	const handleMovement = useCallback((e: KeyboardEvent) => {
 		if (e.key === "ArrowUp")
 			send("UP", "movePlayer");
@@ -71,20 +76,9 @@ function PracticeGame({ powerUpGame }: prop) {
 			send("DOWN", "movePlayer");
 	}, []);
 
-	// //countdown
-	useEffect(() => {
-		if (isRunning === false) {
-			if (count === 0) {
-				setRunning(true);
-				setCount(3);
-				send(gameMode, "startPractice");
-				return;
-			}
-			setTimeout(() => {
-				setCount(count - 1);
-			}, 1000);
-		}
-	}, [isRunning, count]);
+    // const sendGameMode = useCallback(() => {
+    //     send(gameMode, "gameMode");
+    // }, []);
 
 	useEffect(() => {
 		if (isRunning) {
@@ -104,6 +98,9 @@ function PracticeGame({ powerUpGame }: prop) {
 			receive("decreaseSize");
 			//receives speed ball power up
 			receive("speed");
+			receive("startGame");
+            //receives game result
+            // receive("GameResult");
 			window.addEventListener("keydown", handleMovement);
 			return () => {
 				window.removeEventListener("keydown", handleMovement);
@@ -112,20 +109,22 @@ function PracticeGame({ powerUpGame }: prop) {
 	}, [isRunning]);
 
 	return (
-		<PracticeGameStage count={count} isRunning={isRunning} textures={textures} powerUpsTextures={powerUpsTextures} />
+		<PracticeGameStage count={count} isRunning={isRunning} hasEnded={hasEnded} gameResult={result} textures={textures} powerUpsTextures={powerUpsTextures} />
 	);
 }
 
-export default PracticeGame;
+export default MultiplayerGame;
 
 interface PracticeGameStageProps {
-	count: number;
-	isRunning: boolean;
-	textures: Textures;
-	powerUpsTextures?: PowerUpsTextures;
+	count: number,
+	isRunning: boolean,
+    hasEnded: boolean,
+    gameResult: string,
+	textures: Textures,
+	powerUpsTextures?: PowerUpsTextures
 }
 
-function PracticeGameStage({ count, isRunning, textures, powerUpsTextures }: PracticeGameStageProps) {
+function PracticeGameStage({ count, isRunning, hasEnded, gameResult, textures, powerUpsTextures }: PracticeGameStageProps) {
 	const { paddle1, paddle2 } = playerStore();
 	const { ballPosition } = ballStore();
 	const { paddle1Score, paddle2Score } = scoreStore();
@@ -133,10 +132,12 @@ function PracticeGameStage({ count, isRunning, textures, powerUpsTextures }: Pra
 
 	return (
 		<Stage width={WIDTH} height={HEIGHT}>
+            {/*Game background */}
 			<Layer>
 				<Rect width={WIDTH} height={HEIGHT} fill="BLACK"></Rect>
 			</Layer>
-			{isRunning ? (
+            {/*Drawing game objects */}
+			{isRunning === true ? (
 				<Layer>
 					<Text text={paddle1Score.toString() + " : " + paddle2Score.toString()} x={360} y={20} fill="white" fontSize={50}></Text>
 					<Image image={textures.paddle1Texture} x={paddle1.x} y={paddle1.y} />
@@ -150,15 +151,38 @@ function PracticeGameStage({ count, isRunning, textures, powerUpsTextures }: Pra
 						</>
 					)}
 				</Layer>
-			) : (
-				<Layer>
-					<Text text="Get ready ! " fill="white" x={310} y={200} fontSize={40}></Text>
-					<Text text={count.toString()} fill="white" x={400} y={250} fontSize={40}></Text>
-					<Image image={textures.paddle1Texture} x={0} y={250} />
-					<Image image={textures.paddle2Texture} x={780} y={250} />
-					<Image image={textures.ballTexture} x={400} y={300} />
-				</Layer>
-			)}
-		</Stage>
+            ) : (
+            <>
+                <WaitingLobby isRunning={isRunning} hasEnded={hasEnded} gameResult={gameResult}/>
+                <GameResult isRunning={isRunning} hasEnded={hasEnded} gameResult={gameResult} />
+            </>
+            )}
+        </Stage>
 	);
+}
+
+interface GameRunningProps {
+    isRunning: boolean,
+    hasEnded: boolean,
+    gameResult: string
+};
+
+function WaitingLobby({isRunning, hasEnded}: GameRunningProps) {
+    return (
+        <>
+            { hasEnded === false && isRunning === false && <LoadingScreen/> }
+        </>
+    );
+}
+
+function GameResult({isRunning, hasEnded, gameResult}: GameRunningProps) {
+    return (
+        <>
+            { hasEnded === true && isRunning === false &&
+            <Layer>
+                <Text text={gameResult} x={100} y={400} fill="white" fontSize={50}></Text>
+            </Layer>
+            }
+        </>
+    )
 }

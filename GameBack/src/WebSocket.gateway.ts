@@ -26,7 +26,13 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 
 	handleConnection(client: Socket) {
 		console.log('client: ', client.id, ' has connected');
-		client.emit('status', 'connected');
+		// client.on('gameMode', (data) => {
+		// 	console.log('yo')
+		// 	if (data === 'defaultGame')
+		// 		this.queueDefault.push(client);
+		// 	else if (data == 'powerUpGame')
+		// 		this.queuePowerUps.push(client);
+		// })
 	}
 	
 	handleDisconnect(client: Socket) {
@@ -47,13 +53,13 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 	getGameMode(client: Socket, gameMode: string) {
 		console.log('message received')
 		if (gameMode === 'defaultGame')
-			this.queueDefault.push(client);
-		else if (gameMode == 'powerUpGame')
-			this.queuePowerUps.push(client);
-	}
+		this.queueDefault.push(client);
+	else if (gameMode == 'powerUpGame')
+	this.queuePowerUps.push(client);
+}
 
-	matchmaking() {
-		// console.log('Im in matchmaking', this.queueDefault?.length);
+matchmaking() {
+	// console.log('Im in matchmaking', this.queueDefault?.length);
 		let gameMode: GAME_MODE = GAME_MODE.MULTIPLAYER;
 		let queue: Socket[] | null = null;
 		if (this.queueDefault?.length >= 2)
@@ -77,10 +83,11 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 			socket1.join("room " + roomNbr.toString());
 			socket2.join("room " + roomNbr.toString());
 			this.server?.to("room " + roomNbr.toString()).emit('startGame', true);
+			// client.emit('status', 'connected');
 			this.startGame(socket1, socket2, roomNbr, gameMode);
 		}
 	};
-
+	
 	//start multiplayer game
 	startGame(socket1: Socket, socket2: Socket, ID: number, gameMode: GAME_MODE) {
 		const game = new Game(socket1, socket2, this.server, this.eventEmitter, ID, gameMode);
