@@ -8,7 +8,8 @@ const HEIGHT = 600;
 const paddle1X = 0;
 const paddle2X = 780;
 const paddleWidth = 25;
-const paddleHeight = 100;
+let paddle1Height = 100;
+let paddle2Height = 100;
 const resetBallPosition = { x: 400, y: 300 };
 const ballRadius = 25;
 const FRAME_RATE = 1000 / 60;
@@ -78,7 +79,7 @@ class Game {
         this.client1?.on('movePlayer', (direction) => {
             if (direction == 'UP' && this.leftPaddlePosition > 0)
                 this.leftPaddlePosition -= 10;
-            else if (direction == 'DOWN' && this.leftPaddlePosition + paddleHeight < HEIGHT)
+            else if (direction == 'DOWN' && this.leftPaddlePosition + paddle1Height < HEIGHT)
                 this.leftPaddlePosition += 10;
             this.server.to(this.room).emit('leftPlayerUpdate', this.leftPaddlePosition);
         });
@@ -86,7 +87,7 @@ class Game {
             this.client2?.on('movePlayer', (direction) => {
                 if (direction == 'UP' && this.rightPaddlePosition > 0)
                     this.rightPaddlePosition -= 10;
-                else if (direction == 'DOWN' && this.rightPaddlePosition + paddleHeight < HEIGHT)
+                else if (direction == 'DOWN' && this.rightPaddlePosition + paddle2Height < HEIGHT)
                     this.rightPaddlePosition += 10;
                 this.server.to(this.room).emit('rightPlayerUpdate', this.rightPaddlePosition);
             });
@@ -107,11 +108,13 @@ class Game {
                 switch (this.finalPaddle) {
                     case PADDLE.LEFT_PADDLE:
                         this.server.to(this.room).emit('increaseSize', 'leftPaddle');
+                        paddle1Height = 150;
                         console.log('INCREASE THE SIZE');
                         break;
                     case PADDLE.RIGHT_PADDLE:
                         this.server.to(this.room).emit('increaseSize', 'rightPaddle');
                         console.log('INCREASE THE SIZE');
+                        paddle2Height = 150;
                         break;
                     default:
                         break;
@@ -124,10 +127,12 @@ class Game {
                     case PADDLE.LEFT_PADDLE:
                         this.server.to(this.room).emit('decreaseSize', 'leftPaddle');
                         console.log('DECREASE THE SIZE');
+                        paddle1Height = 50;
                         break;
                     case PADDLE.RIGHT_PADDLE:
                         this.server.to(this.room).emit('decreaseSize', 'rightPaddle');
                         console.log('DECREASE THE SIZE');
+                        paddle2Height = 50;
                         break;
                     default:
                         break;
@@ -138,7 +143,8 @@ class Game {
                 console.log('yo biatch3');
                 this.server.to(this.room).emit('speed');
                 this.isBallSpedUp = true;
-                this.ballVelocity.y += 4;
+                this.ballVelocity.x += 2;
+                this.ballVelocity.y += 2;
             }
         }
     }
@@ -164,13 +170,13 @@ class Game {
             this.server.to(this.room).emit('leftScoreUpdate', this.score.left);
         }
         else if ((this.ballPosition.y >= this.leftPaddlePosition &&
-            this.ballPosition.y <= this.leftPaddlePosition + paddleHeight &&
+            this.ballPosition.y <= this.leftPaddlePosition + paddle1Height &&
             this.ballPosition.x < paddle1X + paddleWidth)) {
             this.finalPaddle = PADDLE.LEFT_PADDLE;
             this.ballVelocity.x = -this.ballVelocity.x;
         }
         else if (this.ballPosition.y >= this.rightPaddlePosition &&
-            this.ballPosition.y <= this.rightPaddlePosition + paddleHeight &&
+            this.ballPosition.y <= this.rightPaddlePosition + paddle2Height &&
             this.ballPosition.x + ballRadius >= paddle2X) {
             this.finalPaddle = PADDLE.RIGHT_PADDLE;
             this.ballVelocity.x = -this.ballVelocity.x;
@@ -185,7 +191,7 @@ class Game {
     ;
     AIpaddle() {
         let ballY = this.ballPosition.y;
-        if (ballY > this.rightPaddlePosition && this.rightPaddlePosition + paddleHeight < HEIGHT)
+        if (ballY > this.rightPaddlePosition && this.rightPaddlePosition + paddle2Height < HEIGHT)
             this.rightPaddlePosition += 10;
         else if (ballY < this.rightPaddlePosition && this.rightPaddlePosition > 0)
             this.rightPaddlePosition -= 10;

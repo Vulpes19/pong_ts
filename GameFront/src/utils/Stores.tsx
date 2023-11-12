@@ -9,8 +9,8 @@ interface Vector {
 interface PlayerPositions {
     paddle1: Vector;
     paddle2: Vector;
-    paddle1Texture: HTMLImageElement | null;
-    paddle2Texture: HTMLImageElement | null;
+    paddle1Texture: HTMLImageElement;
+    paddle2Texture: HTMLImageElement;
     movePaddle1: (newPosition: number) => void;
     movePaddle2: (newPosition: number) => void;
     setPaddle1: (src: string) => void;
@@ -20,26 +20,32 @@ interface PlayerPositions {
 export const playerStore = create<PlayerPositions>((set, get) => ({
     paddle1: { x: 0, y: 250 },
     paddle2: { x: 780, y: 250 },
-    paddle1Texture: null,
-    paddle2Texture: null,
+    paddle1Texture: new window.Image,
+    paddle2Texture: new window.Image,
 
     movePaddle1: (newPosition: number) => set({ paddle1: { x: 0, y: newPosition } }),
     movePaddle2: (newPosition: number) => set({ paddle2: { x: 780, y: newPosition } }),
     setPaddle1: (src: string) => {
-        const img: HTMLImageElement = new window.Image;
-        img.onload = () => {
-            set({paddle1Texture: img});
-        };
+        const img = get().paddle1Texture;
         img.src = src;
-        img.onload = null;
+        set({paddle1Texture: img});
+        // const img: HTMLImageElement = new window.Image;
+        // img.onload = () => {
+        //     set({paddle1Texture: img});
+        // };
+        // img.src = src;
+        // img.onload = null;
     },
     setPaddle2: (src: string) => {
-        const img: HTMLImageElement = new window.Image;
-        img.onload = () => {
-            set({paddle2Texture: img});
-        };
+        const img = get().paddle2Texture;
         img.src = src;
-        img.onload = null;
+        set({paddle2Texture: img});
+        // const img: HTMLImageElement = new window.Image;
+        // img.onload = () => {
+        //     set({paddle2Texture: img});
+        // };
+        // img.src = src;
+        // img.onload = null;
     },
 }));
 

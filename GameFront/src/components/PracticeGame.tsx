@@ -14,8 +14,8 @@ const HEIGHT = 600;
 
 interface Textures {
 	ballTexture: HTMLImageElement;
-	paddle1Texture: HTMLImageElement;
-	paddle2Texture: HTMLImageElement;
+	// paddle1Texture: HTMLImageElement;
+	// paddle2Texture: HTMLImageElement;
 }
 interface prop {
 	powerUpGame: boolean;
@@ -25,8 +25,8 @@ function PracticeGame({ powerUpGame }: prop) {
 	const textures: Textures = useMemo(
 		() => ({
 			ballTexture: new window.Image(),
-			paddle1Texture: new window.Image(),
-			paddle2Texture: new window.Image(),
+			// paddle1Texture: new window.Image(),
+			// paddle2Texture: new window.Image(),
 		}),
 		[]
 	);
@@ -36,7 +36,7 @@ function PracticeGame({ powerUpGame }: prop) {
 
 	const [isRunning, setRunning] = useState<boolean>(false);
 	const [count, setCount] = useState<number>(3);
-
+	const { paddle1Texture, paddle2Texture, setPaddle1, setPaddle2 } = playerStore();
 	useEffect(() => {
 		if (powerUpGame) {
 			function loadPowerUpTextures() {
@@ -57,8 +57,10 @@ function PracticeGame({ powerUpGame }: prop) {
 	}, [powerUpGame]);
 
 	useEffect(() => {
-		textures.paddle1Texture.src = "assets/paddle.png";
-		textures.paddle2Texture.src = "assets/paddle.png";
+		setPaddle1("assets/paddle.png");
+		setPaddle2("assets/paddle.png");
+		// textures.paddle1Texture.src = "assets/paddle.png";
+		// textures.paddle2Texture.src = "assets/paddle.png";
 		textures.ballTexture.src = "assets/ball.png";
 
 		connect(null);
@@ -112,7 +114,7 @@ function PracticeGame({ powerUpGame }: prop) {
 	}, [isRunning]);
 
 	return (
-		<PracticeGameStage count={count} isRunning={isRunning} textures={textures} powerUpsTextures={powerUpsTextures} />
+		<PracticeGameStage count={count} isRunning={isRunning} ballTexture={textures.ballTexture} paddle1Texture={paddle1Texture} paddle2Texture={paddle2Texture} powerUpsTextures={powerUpsTextures} />
 	);
 }
 
@@ -121,11 +123,14 @@ export default PracticeGame;
 interface PracticeGameStageProps {
 	count: number;
 	isRunning: boolean;
-	textures: Textures;
+	// textures: Textures;
+	ballTexture: HTMLImageElement;
+	paddle1Texture: HTMLImageElement;
+	paddle2Texture: HTMLImageElement;
 	powerUpsTextures?: PowerUpsTextures;
 }
 
-function PracticeGameStage({ count, isRunning, textures, powerUpsTextures }: PracticeGameStageProps) {
+function PracticeGameStage({ count, isRunning, ballTexture, paddle1Texture, paddle2Texture, powerUpsTextures }: PracticeGameStageProps) {
 	const { paddle1, paddle2 } = playerStore();
 	const { ballPosition } = ballStore();
 	const { paddle1Score, paddle2Score } = scoreStore();
@@ -139,9 +144,9 @@ function PracticeGameStage({ count, isRunning, textures, powerUpsTextures }: Pra
 			{isRunning ? (
 				<Layer>
 					<Text text={paddle1Score.toString() + " : " + paddle2Score.toString()} x={360} y={20} fill="white" fontSize={50}></Text>
-					<Image image={textures.paddle1Texture} x={paddle1.x} y={paddle1.y} />
-					<Image image={textures.paddle2Texture} x={paddle2.x} y={paddle2.y} />
-					<Image image={textures.ballTexture} x={ballPosition.x} y={ballPosition.y} />
+					<Image image={paddle1Texture} x={paddle1.x} y={paddle1.y} />
+					<Image image={paddle2Texture} x={paddle2.x} y={paddle2.y} />
+					<Image image={ballTexture} x={ballPosition.x} y={ballPosition.y} />
 					{powerUpsTextures && (
 						<>
 							{increaseSize && <Image image={powerUpsTextures.increaseSizePower} x={390} y={150} />}
@@ -154,9 +159,9 @@ function PracticeGameStage({ count, isRunning, textures, powerUpsTextures }: Pra
 				<Layer>
 					<Text text="Get ready ! " fill="white" x={310} y={200} fontSize={40}></Text>
 					<Text text={count.toString()} fill="white" x={400} y={250} fontSize={40}></Text>
-					<Image image={textures.paddle1Texture} x={0} y={250} />
-					<Image image={textures.paddle2Texture} x={780} y={250} />
-					<Image image={textures.ballTexture} x={400} y={300} />
+					<Image image={paddle1Texture} x={0} y={250} />
+					<Image image={paddle2Texture} x={780} y={250} />
+					<Image image={ballTexture} x={400} y={300} />
 				</Layer>
 			)}
 		</Stage>
