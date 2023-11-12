@@ -42,7 +42,6 @@ let WebSocketGatewayC = class WebSocketGatewayC {
         }
     }
     getGameMode(client, gameMode) {
-        console.log('message received');
         if (gameMode === 'defaultGame')
             this.queueDefault.push(client);
         else if (gameMode == 'powerUpGame')
@@ -64,9 +63,7 @@ let WebSocketGatewayC = class WebSocketGatewayC {
             console.log('found a match !');
             const socket1 = queue.pop();
             const socket2 = queue.pop();
-            console.log('setting up the game...');
             const roomNbr = this.roomsNbr + 1;
-            console.log('rooms number', roomNbr);
             socket1.join("room " + roomNbr.toString());
             socket2.join("room " + roomNbr.toString());
             this.server?.to("room " + roomNbr.toString()).emit('startGame', true);
@@ -76,7 +73,6 @@ let WebSocketGatewayC = class WebSocketGatewayC {
     ;
     startGame(socket1, socket2, ID, gameMode) {
         const game = new Game_1.Game(socket1, socket2, this.server, this.eventEmitter, ID, gameMode);
-        console.log('game is allocated');
         this.games.set("room " + ID.toString(), game);
         game.gameLoop();
     }

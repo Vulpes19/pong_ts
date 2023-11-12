@@ -9,16 +9,38 @@ interface Vector {
 interface PlayerPositions {
     paddle1: Vector;
     paddle2: Vector;
+    paddle1Texture: HTMLImageElement | null;
+    paddle2Texture: HTMLImageElement | null;
     movePaddle1: (newPosition: number) => void;
     movePaddle2: (newPosition: number) => void;
+    setPaddle1: (src: string) => void;
+    setPaddle2: (src: string) => void;
 }
 
-export const playerStore = create<PlayerPositions>((set) => ({
+export const playerStore = create<PlayerPositions>((set, get) => ({
     paddle1: { x: 0, y: 250 },
     paddle2: { x: 780, y: 250 },
+    paddle1Texture: null,
+    paddle2Texture: null,
 
     movePaddle1: (newPosition: number) => set({ paddle1: { x: 0, y: newPosition } }),
     movePaddle2: (newPosition: number) => set({ paddle2: { x: 780, y: newPosition } }),
+    setPaddle1: (src: string) => {
+        const img: HTMLImageElement = new window.Image;
+        img.onload = () => {
+            set({paddle1Texture: img});
+        };
+        img.src = src;
+        img.onload = null;
+    },
+    setPaddle2: (src: string) => {
+        const img: HTMLImageElement = new window.Image;
+        img.onload = () => {
+            set({paddle2Texture: img});
+        };
+        img.src = src;
+        img.onload = null;
+    },
 }));
 
 interface BallMovement {
@@ -113,7 +135,7 @@ interface SocketStore {
     socket: Socket | null;
     isRunning: boolean;
 
-    connect: (onConnect: Function) => void;
+    connect: (onConnect: Function | null) => void;
     send: (msg: string, type: string) => void;
     receive: (type: string) => void;
     setRunning: (type: boolean) => void;
@@ -124,18 +146,18 @@ export const socketStore = create<SocketStore>((set, get) => ({
     socket: null,
     isRunning: false,
 
-    connect: (onConnect: Function) => {
+    connect: (onConnect: Function | null) => {
         const socket = io("ws://localhost:3001", { transports: ["websocket"], autoConnect: false });
         socket.on("connect", () => {
             set({ socket });
-            onConnect();
+            if (onConnect)
+                onConnect();
         });
         socket.connect();
     },
     send: (msg: string, type: string) => {
         const socket = get().socket;
         if (socket) {
-            console.log('msg sent')
             socket.emit(type, msg);
         }
     },
@@ -158,11 +180,11 @@ export const socketStore = create<SocketStore>((set, get) => ({
                 case 'rightPlayerUpdate':
                     socket.on(type, (data) => void playerStore.getState().movePaddle2(data));
                     break;
-                case 'status':
-                    console.log('received status')
-                    // socketStore.getState().setRunning(true);
-                    // socket.on(type, () => void socketStore.getState().setRunning(true));
-                    break;
+                // case 'status':
+                //     console.log('received status')
+                //     // socketStore.getState().setRunning(true);
+                //     // socket.on(type, () => void socketStore.getState().setRunning(true));
+                //     break;
                 case 'GameResult':
                     socket.on(type, (data) => {
                         // console.log('HANI HNA')
@@ -174,7 +196,32 @@ export const socketStore = create<SocketStore>((set, get) => ({
                     break;
                 case 'startGame':
                     socket.on(type, (data) => void socketStore.getState().setRunning(data));
-                    console.log('game started')
+                    break;
+                case 'increaseSize':
+                    socket.on(type, (data) => {
+                        console.log('increasing size', data)
+                        if (data == 'leftPaddle')
+                            playerStore.getState().setPaddle1("assets/big_paddle.png");
+                        else
+                            playerStore.getState().setPaddle2("assets/big_paddle.png");
+                        powerUpsStore.getState().setIncreaseSize(false);
+                    });
+                    break;
+                case 'decreaseSize':
+                    socket.on(type, (data) => {
+                        console.log('decreasing size', data)
+                        if (data == 'leftPaddle')
+                            playerStore.getState().setPaddle1("assets/small_paddle.png");
+                        else
+                            playerStore.getState().setPaddle2("assets/small_paddle.png");
+                        powerUpsStore.getState().setDecreaseSize(false);
+                    });
+                    break;
+                case 'speed':
+                    socket.on(type, () => {
+                        console.log('speeding up')
+                        powerUpsStore.getState().setSpeed(false);
+                    });
                     break;
                 default:
                     break;

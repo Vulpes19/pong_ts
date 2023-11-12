@@ -61,7 +61,7 @@ function PracticeGame({ powerUpGame }: prop) {
 		textures.paddle2Texture.src = "assets/paddle.png";
 		textures.ballTexture.src = "assets/ball.png";
 
-		connect();
+		connect(null);
 	}, []);
 
 	const handleMovement = useCallback((e: KeyboardEvent) => {

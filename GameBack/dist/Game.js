@@ -69,7 +69,7 @@ class Game {
     ;
     clean() {
         this.client1.removeAllListeners();
-        this.client2.removeAllListeners();
+        this.client2?.removeAllListeners();
         this.client1 = null;
         this.client2 = null;
         clearInterval(this.gameLoopInterval);
@@ -99,36 +99,52 @@ class Game {
     ;
     powerUpsCollision() {
         if (increasePowerUpPosition.x >= this.ballPosition.x && increasePowerUpPosition.x + powerUpSize <= this.ballPosition.x + ballRadius) {
-            if (increasePowerUpPosition.y >= this.ballPosition.y && increasePowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius && this.isPaddleSizeBig === false) {
+            console.log('wassuuuup');
+            console.log(increasePowerUpPosition.y, this.ballPosition.y);
+            console.log(increasePowerUpPosition.y + powerUpSize, this.ballPosition.y + ballRadius);
+            if (((increasePowerUpPosition.y >= this.ballPosition.y && increasePowerUpPosition.y <= this.ballPosition.y + ballRadius) || (increasePowerUpPosition.y >= this.ballPosition.y && increasePowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius)) && this.isPaddleSizeBig === false) {
                 console.log('yo biatch1');
                 switch (this.finalPaddle) {
                     case PADDLE.LEFT_PADDLE:
                         this.server.to(this.room).emit('increaseSize', 'leftPaddle');
+                        console.log('INCREASE THE SIZE');
+                        break;
                     case PADDLE.RIGHT_PADDLE:
                         this.server.to(this.room).emit('increaseSize', 'rightPaddle');
+                        console.log('INCREASE THE SIZE');
+                        break;
+                    default:
+                        break;
                 }
                 this.isPaddleSizeBig = true;
             }
-            else if (decreasePowerUpPosition.y >= this.ballPosition.y && decreasePowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius && this.isPaddleSizeSmall === false) {
+            else if (((decreasePowerUpPosition.y >= this.ballPosition.y && decreasePowerUpPosition.y <= this.ballPosition.y + ballRadius) || (decreasePowerUpPosition.y >= this.ballPosition.y && decreasePowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius)) && this.isPaddleSizeSmall === false) {
                 console.log('yo biatch2');
                 switch (this.finalPaddle) {
                     case PADDLE.LEFT_PADDLE:
                         this.server.to(this.room).emit('decreaseSize', 'leftPaddle');
+                        console.log('DECREASE THE SIZE');
+                        break;
                     case PADDLE.RIGHT_PADDLE:
                         this.server.to(this.room).emit('decreaseSize', 'rightPaddle');
+                        console.log('DECREASE THE SIZE');
+                        break;
+                    default:
+                        break;
                 }
                 this.isPaddleSizeSmall = true;
             }
-            else if (speedPowerUpPosition.y >= this.ballPosition.y && speedPowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius && this.isBallSpedUp === false) {
+            else if (((speedPowerUpPosition.y >= this.ballPosition.y && speedPowerUpPosition.y <= this.ballPosition.y + ballRadius) || (speedPowerUpPosition.y >= this.ballPosition.y && speedPowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius)) && this.isBallSpedUp === false) {
                 console.log('yo biatch3');
                 this.server.to(this.room).emit('speed');
                 this.isBallSpedUp = true;
-                this.ballVelocity.x += 4;
                 this.ballVelocity.y += 4;
             }
         }
     }
     updateBall() {
+        if (this.mode === GAME_MODE.MULTIPLAYER_POWERUPS || this.mode === GAME_MODE.PRACTICE_POWERUPS)
+            this.powerUpsCollision();
         if (this.ballPosition.y < 0 ||
             this.ballPosition.y + ballRadius >= HEIGHT) {
             this.ballVelocity.y = -this.ballVelocity.y;
@@ -161,8 +177,6 @@ class Game {
         }
         if (this.mode === GAME_MODE.PRACTICE || this.mode === GAME_MODE.PRACTICE_POWERUPS)
             this.AIpaddle();
-        if (this.mode === GAME_MODE.MULTIPLAYER_POWERUPS || this.mode === GAME_MODE.PRACTICE_POWERUPS)
-            this.powerUpsCollision();
         this.ballPosition.x = this.ballPosition.x + this.ballVelocity.x;
         this.ballPosition.y = this.ballPosition.y + this.ballVelocity.y;
         this.endGame();

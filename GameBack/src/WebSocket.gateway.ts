@@ -51,11 +51,10 @@ export class WebSocketGatewayC implements OnGatewayConnection, OnGatewayDisconne
 
 	@SubscribeMessage('gameMode')
 	getGameMode(client: Socket, gameMode: string) {
-		console.log('message received')
-		if (gameMode === 'defaultGame')
+	if (gameMode === 'defaultGame')
 		this.queueDefault.push(client);
 	else if (gameMode == 'powerUpGame')
-	this.queuePowerUps.push(client);
+		this.queuePowerUps.push(client);
 }
 
 matchmaking() {
@@ -78,13 +77,10 @@ matchmaking() {
 			console.log('found a match !');
 			const socket1: Socket = queue.pop();
 			const socket2: Socket = queue.pop();
-			console.log('setting up the game...');
 			const roomNbr: number = this.roomsNbr + 1;
-			console.log('rooms number', roomNbr)
 			socket1.join("room " + roomNbr.toString());
 			socket2.join("room " + roomNbr.toString());
 			this.server?.to("room " + roomNbr.toString()).emit('startGame', true);
-			// client.emit('status', 'connected');
 			this.startGame(socket1, socket2, roomNbr, gameMode);
 		}
 	};
@@ -92,7 +88,6 @@ matchmaking() {
 	//start multiplayer game
 	startGame(socket1: Socket, socket2: Socket, ID: number, gameMode: GAME_MODE) {
 		const game = new Game(socket1, socket2, this.server, this.eventEmitter, ID, gameMode);
-		console.log('game is allocated')
 		this.games.set("room " + ID.toString(), game);
 		game.gameLoop();
 	};
