@@ -103,25 +103,33 @@ class Game {
             console.log('wassuuuup');
             console.log(increasePowerUpPosition.y, this.ballPosition.y);
             console.log(increasePowerUpPosition.y + powerUpSize, this.ballPosition.y + ballRadius);
-            if (((increasePowerUpPosition.y >= this.ballPosition.y && increasePowerUpPosition.y <= this.ballPosition.y + ballRadius) || (increasePowerUpPosition.y >= this.ballPosition.y && increasePowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius)) && this.isPaddleSizeBig === false) {
+            if (((increasePowerUpPosition.y >= this.ballPosition.y
+                && increasePowerUpPosition.y <= this.ballPosition.y + ballRadius)
+                || (increasePowerUpPosition.y + powerUpSize >= this.ballPosition.y
+                    && increasePowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius))
+                && this.isPaddleSizeBig === false) {
                 console.log('yo biatch1');
                 switch (this.finalPaddle) {
                     case PADDLE.LEFT_PADDLE:
                         this.server.to(this.room).emit('increaseSize', 'leftPaddle');
-                        paddle1Height = 150;
+                        paddle1Height = 200;
                         console.log('INCREASE THE SIZE');
                         break;
                     case PADDLE.RIGHT_PADDLE:
                         this.server.to(this.room).emit('increaseSize', 'rightPaddle');
                         console.log('INCREASE THE SIZE');
-                        paddle2Height = 150;
+                        paddle2Height = 200;
                         break;
                     default:
                         break;
                 }
                 this.isPaddleSizeBig = true;
             }
-            else if (((decreasePowerUpPosition.y >= this.ballPosition.y && decreasePowerUpPosition.y <= this.ballPosition.y + ballRadius) || (decreasePowerUpPosition.y >= this.ballPosition.y && decreasePowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius)) && this.isPaddleSizeSmall === false) {
+            else if (((decreasePowerUpPosition.y >= this.ballPosition.y
+                && decreasePowerUpPosition.y <= this.ballPosition.y + ballRadius)
+                || (decreasePowerUpPosition.y + powerUpSize >= this.ballPosition.y
+                    && decreasePowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius))
+                && this.isPaddleSizeSmall === false) {
                 console.log('yo biatch2');
                 switch (this.finalPaddle) {
                     case PADDLE.LEFT_PADDLE:
@@ -139,12 +147,15 @@ class Game {
                 }
                 this.isPaddleSizeSmall = true;
             }
-            else if (((speedPowerUpPosition.y >= this.ballPosition.y && speedPowerUpPosition.y <= this.ballPosition.y + ballRadius) || (speedPowerUpPosition.y >= this.ballPosition.y && speedPowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius)) && this.isBallSpedUp === false) {
+            else if (((speedPowerUpPosition.y >= this.ballPosition.y
+                && speedPowerUpPosition.y <= this.ballPosition.y + ballRadius)
+                || (speedPowerUpPosition.y + powerUpSize >= this.ballPosition.y
+                    && speedPowerUpPosition.y + powerUpSize <= this.ballPosition.y + ballRadius))
+                && this.isBallSpedUp === false) {
                 console.log('yo biatch3');
                 this.server.to(this.room).emit('speed');
                 this.isBallSpedUp = true;
-                this.ballVelocity.x += 2;
-                this.ballVelocity.y += 2;
+                this.ballVelocity.y += 4;
             }
         }
     }

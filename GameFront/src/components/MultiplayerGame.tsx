@@ -93,12 +93,14 @@ function MultiplayerGame({ powerUpGame }: prop) {
 			receive("leftPlayerUpdate");
 			//receives right paddle position
 			receive("rightPlayerUpdate");
-			//receives increase size power up
-			receive("increaseSize");
-			//receives decrease size power up
-			receive("decreaseSize");
-			//receives speed ball power up
-			receive("speed");
+			if (powerUpGame) {
+				//receives increase size power up
+				receive("increaseSize");
+				//receives decrease size power up
+				receive("decreaseSize");
+				//receives speed ball power up
+				receive("speed");
+			}
 			receive("startGame");
             //receives game result
             receive("GameResult");
